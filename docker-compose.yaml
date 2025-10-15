@@ -1,0 +1,101 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./PersonalAccount/config
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PASSWORD_DB}
+      POSTGRES_DB: PersonalAccount
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./PersonalAccauntFrontend/PersonalAccauntF
+      dockerfile: Dockerfile
+    container_name: frontend
+    volumes:
+      - frontend_dist:/dist
+
+  db:
+    image: postgres:17
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: PersonalAccount
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PASSWORD_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
+
+  redis:
+    image: redis:8
+    container_name: redis
+    expose:
+      - "6379"
+
+  celery_worker:
+    build:
+      context: ./PersonalAccount/config
+    command: celery -A config worker --loglevel=info
+    depends_on:
+      - redis
+      - db
+      - backend
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DJANGO_SETTINGS_MODULE: config.settings
+      CELERY_BROKER_URL: redis://redis:6379/0
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: PersonalAccount
+      POSTGRES_USER: postgres
+      PASSWORD_DB: ${PASSWORD_DB}
+
+  celery_beat:
+    build:
+      context: ./PersonalAccount/config
+    command: celery -A config beat --loglevel=info
+    depends_on:
+      - redis
+      - db
+      - backend
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DJANGO_SETTINGS_MODULE: config.settings
+      CELERY_BROKER_URL: redis://redis:6379/0
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: PersonalAccount
+      POSTGRES_USER: postgres
+      PASSWORD_DB: ${PASSWORD_DB}
+
+volumes:
+  db_data:
+  frontend_dist:
