@@ -10,7 +10,7 @@ function getKey() {
     const digest = CryptoJS.MD5(dateStr).toString();
     return digest;
 }
-
+const  url= 'http://localhost/'
 
 export default function CartPage() {
     const navigate = useNavigate();
@@ -118,7 +118,7 @@ export default function CartPage() {
                 ? { phone, cart: cartWithSum, code }
                 : { phone, cart: cartWithSum };
 
-            const res = await fetch("http://localhost/api/order/", {
+            const res = await fetch(`${url}order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -155,7 +155,7 @@ export default function CartPage() {
 
             };
             
-            await fetch("http://localhost/api/order-line/",{
+            await fetch(`${url}api/order-line/`,{
                     method: "POST",
                     headers:{
                         "Content-Type": "application/json",
@@ -196,7 +196,7 @@ export default function CartPage() {
                 priceLevel: currentPriceLevel
             };
 
-            const res = await fetch("http://localhost/api/order/", {
+            const res = await fetch(`${url}api/order/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -259,7 +259,7 @@ export default function CartPage() {
                             style={{ ...styles.logoSection, cursor: "pointer" }}
                             onClick={() => navigate("/")}
                         >
-                            <img src="/src/assets/logo.png" alt="logo" style={styles.logoImage} />
+                            <img src="/logo.png" alt="logo" style={styles.logoImage} />
                             <div style={styles.logoText}>
                                 <h1 style={styles.logoTitle}>ПЛЕЯДЫ</h1>
                                 <span style={styles.logoSub}>ГРУППА КОМПАНИЙ</span>

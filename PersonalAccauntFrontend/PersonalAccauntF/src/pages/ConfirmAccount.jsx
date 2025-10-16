@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-
+const  url= 'http://localhost/'
 function ActivateUser() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
@@ -17,7 +17,7 @@ function ActivateUser() {
         if (hasActivated.current) return;
         hasActivated.current = true;
 
-        axios.get(`http://localhost/api/activate/${token}/`).then((res) => setMessage(res.data.message))
+        axios.get(`${url}api/activate/${token}/`).then((res) => setMessage(res.data.message))
             .catch((err) => {
                 if (err.response) setMessage(err.response.data.error || "Ошибка активации");
                 else setMessage("Ошибка сети");

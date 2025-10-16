@@ -34,7 +34,7 @@ class UserRegister(APIView):
             inn = serializer.validated_data['inn']
             user = serializer.save(is_active=False)
             code, token = generate_token(email)
-            link = f"http://localhost:5173/activate?token={token}"
+            link = f"http://localhost/activate?token={token}"
 
             send_mail(
                 'Активация Аккаунта',

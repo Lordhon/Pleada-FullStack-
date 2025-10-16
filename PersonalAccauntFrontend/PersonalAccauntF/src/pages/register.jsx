@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
+const  url= 'http://localhost/'
 function Register() {
     const [formData, setFormData] = useState({ email: '', password: '', inn: '', phone_number: '' });
     const [step, setStep] = useState(1);
@@ -21,7 +21,7 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost/api/register/', formData);
+            const response = await axios.post(`${url}api/register/`, formData);
             console.log('Success:', response.data);
             setStep(2);
         } catch (error) {
@@ -44,7 +44,7 @@ function Register() {
     const handleCodeSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost/api/account/activate-code/', { email: formData.email, code });
+            const response = await axios.post(`${url}api/account/activate-code/`, { email: formData.email, code });
             console.log('Code verified:', response.data);
             setMessage('Регистрация подтверждена!');
             navigate("/login");
