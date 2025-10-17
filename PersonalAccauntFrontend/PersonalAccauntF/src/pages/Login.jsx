@@ -74,7 +74,7 @@ function Login() {
                 />
 
                 <ReCAPTCHA
-                    sitekey="6LeXht0rAAAAAKBxY-SSKfnVqv-nH5m5OESd6HuF"
+                    sitekey="6Lek9e0rAAAAALu9pRkj9ca8Yoeo-PCCsSM9YVgc"
                     onChange={(token) => setCaptchaToken(token)}
                 />
 
