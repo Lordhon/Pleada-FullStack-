@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
-const  url= 'http://localhost/'
+const  url= '/'
 function Login() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [captchaToken, setCaptchaToken] = useState(null);

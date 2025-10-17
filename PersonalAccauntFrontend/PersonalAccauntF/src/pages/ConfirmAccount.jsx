@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-const  url= 'http://localhost/'
+const  url= '/'
 function ActivateUser() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PrivateEndpoint from "../func/privateendpoint.jsx";
-const  url= 'http://localhost/'
+const  url= '/'
 export default function CatalogPage() {
     const { slug } = useParams();
     const navigate = useNavigate();

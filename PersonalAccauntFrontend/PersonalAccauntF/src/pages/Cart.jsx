@@ -10,7 +10,7 @@ function getKey() {
     const digest = CryptoJS.MD5(dateStr).toString();
     return digest;
 }
-const  url= 'http://localhost/'
+const  url= '/'
 
 export default function CartPage() {
     const navigate = useNavigate();
