@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PrivateEndpoint from "../func/privateendpoint.jsx";
-const  url= '/'
+const  url= location.origin;
 export default function CatalogPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function CatalogPage() {
     useEffect(() => {
         if (!slug) return;
 
-        fetch(`${url}api/catalog/${slug}/`)
+        fetch(`${url}/api/catalog/${slug}/`)
             .then(async (res) => {
                 if (!res.ok) {
                     const text = await res.text();

@@ -155,7 +155,7 @@ export default function CartPage() {
 
             };
             
-            await fetch(`${url}api/order-line/`,{
+            await fetch(`${url}/api/order-line/`,{
                     method: "POST",
                     headers:{
                         "Content-Type": "application/json",
@@ -196,7 +196,7 @@ export default function CartPage() {
                 priceLevel: currentPriceLevel
             };
 
-            const res = await fetch(`${url}api/order/`, {
+            const res = await fetch(`${url}/api/order/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -237,7 +237,7 @@ export default function CartPage() {
                 orderDate: new Date().toISOString(),
 
             };
-            await fetch(`${url}api/order-line/`,{
+            await fetch(`${url}/api/order-line/`,{
                     method: "POST",
                     headers:{
                         "Content-Type": "application/json",
