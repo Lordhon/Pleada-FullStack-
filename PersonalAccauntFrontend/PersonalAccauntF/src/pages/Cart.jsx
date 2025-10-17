@@ -118,7 +118,7 @@ export default function CartPage() {
                 ? { phone, cart: cartWithSum, code }
                 : { phone, cart: cartWithSum };
 
-            const res = await fetch(`${url}order/`, {
+            const res = await fetch(`${url}/api/order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -147,7 +147,7 @@ export default function CartPage() {
 
             const orderData = {
                 user: { phone: phone },
-                orderItems,
+                items: orderItems,
                 totalSum: totalCartSum,
                 priceLevel: currentPriceLevel,
                 savings: totalSavings,
@@ -174,7 +174,7 @@ export default function CartPage() {
 
             setShowQuickOrder(false);
             setAwaitingCode(false);
-            navigate("/checkout");
+            navigate("/");
 
         } catch (err) {
             console.error(err);
@@ -218,6 +218,7 @@ export default function CartPage() {
 
             const data = await res.json();
             const userPhone = data.phone;
+            const userInn = data.inn;
 
             const orderItems = cartItems.map(item => ({
                 art: item.art,
@@ -228,7 +229,7 @@ export default function CartPage() {
             }));
 
             const orderData = {
-                user: { phone: userPhone },
+                user: { phone: userPhone , inn: userInn },
                 items: orderItems,
                 totalSum: totalCartSum,
                 priceLevel: currentPriceLevel,
@@ -236,6 +237,14 @@ export default function CartPage() {
                 orderDate: new Date().toISOString(),
 
             };
+            await fetch(`${url}api/order-line/`,{
+                    method: "POST",
+                    headers:{
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(orderData),
+                });
+            
 
 
             console.log("JSON заказа (авторизованный):", JSON.stringify(orderData, null, 2));
@@ -243,7 +252,7 @@ export default function CartPage() {
             localStorage.setItem("currentOrder", JSON.stringify(orderData));
             localStorage.setItem("orderPhone", data.phone);
 
-            navigate("/checkout");
+            navigate("/");
         } catch (err) {
             console.error(err);
             alert("Не удалось оформить заказ. Попробуйте еще раз.");

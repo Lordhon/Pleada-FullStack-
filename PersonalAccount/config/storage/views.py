@@ -51,6 +51,7 @@ class Order(APIView):
         user = request.user if request.user.is_authenticated else None
         cart = request.data.get('cart')
         phone = request.data.get('phone') if not user else getattr(user, 'phone_number', None)
+        inn  = user.inn
         code_from_client = request.data.get('code')
 
         if user:
@@ -61,7 +62,7 @@ class Order(APIView):
 
 
             logger.info(f"Order from authenticated user {user.id}: {cart}")
-            return Response({"status": "ok","phone": str(phone),"authenticated": True,"skip_verification": True}, status=status.HTTP_200_OK)
+            return Response({"status": "ok","phone": str(phone), "inn":inn, "authenticated": True,"skip_verification": True}, status=status.HTTP_200_OK)
 
 
         if not phone or not cart:
@@ -110,15 +111,19 @@ class Order(APIView):
 class OrderLine(APIView):
     def post(self,request):
         data = request.data 
-        obj_param = json.dumps(data)
-        url = f"https://parus.ohelp.ru/api_lk?f=newapp&obj={obj_param}"
-        headers = {
-            "Content-Type": "application/json",
-            "KEY": getkey()
-        }
-        response = requests.post(url,headers=headers)
-        logger.info(response.text)
-        return Response(response.text or "", status=response.status_code)
+        logger.info(data)
+        try:
+            obj_param = json.dumps(data)
+            url = f"https://parus.ohelp.ru/api_lk?f=newapp&obj={obj_param}"
+            headers = {
+                "Content-Type": "application/json",
+                "KEY": getkey()
+            }
+            response = requests.get(url,headers=headers)
+            return Response(response.text or "", status=response.status_code)
+        
+        except Exception as e : 
+            logger.error(e)
 
         
         

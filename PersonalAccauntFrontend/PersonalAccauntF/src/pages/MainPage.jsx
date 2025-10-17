@@ -33,7 +33,7 @@ export default function MainPage() {
 
     return (
         <div style={styles.page}>
-
+            
             <header style={styles.header}>
                 <div
                     style={styles.logoSection}
@@ -46,10 +46,18 @@ export default function MainPage() {
                     </div>
                 </div>
 
+               
+                <div style={styles.phoneSection}>
+                         +7 930 665-32-71
+                    <span style={styles.phoneSub}>
+                        для связи по вопросам и заказам
+                    </span>
+                </div>
+
                 <PrivateEndpoint />
             </header>
 
-
+            
             <section style={styles.hero}>
                 <div style={styles.heroContent}>
                     <h2 style={styles.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
@@ -81,7 +89,7 @@ export default function MainPage() {
                 </div>
             </section>
 
-
+            
             <section style={styles.catalogSection} ref={catalogRef}>
                 <div style={styles.catalog}>
                     <h3 style={styles.catalogTitle}>Каталог</h3>
@@ -150,6 +158,25 @@ const styles = {
     logoText: { display: "flex", flexDirection: "column" },
     logoTitle: { margin: 0, color: "#ffcc00", fontSize: "30px" },
     logoSub: { fontSize: "14px", color: "#aaa" },
+
+    phoneSection: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        marginRight: "20px",
+    },
+    phoneNumber: {
+        color: "#ffcc00",
+        fontSize: "18px",
+        fontWeight: "bold",
+        textDecoration: "none",
+    },
+    phoneSub: {
+        color: "#ccc",
+        fontSize: "12px",
+        marginTop: "2px",
+    },
+
     button: {
         backgroundColor: "#ffcc00",
         border: "none",
