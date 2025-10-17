@@ -51,7 +51,7 @@ class Order(APIView):
         user = request.user if request.user.is_authenticated else None
         cart = request.data.get('cart')
         phone = request.data.get('phone') if not user else getattr(user, 'phone_number', None)
-        inn  = user.inn
+        inn  = user.inn if request.user.is_authenticated else None
         code_from_client = request.data.get('code')
 
         if user:

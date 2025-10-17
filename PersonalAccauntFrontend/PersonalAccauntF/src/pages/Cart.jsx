@@ -117,7 +117,7 @@ export default function CartPage() {
             const payload = awaitingCode
                 ? { phone, cart: cartWithSum, code }
                 : { phone, cart: cartWithSum };
-
+            console.log('Я тут');
             const res = await fetch(`${url}/api/order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
