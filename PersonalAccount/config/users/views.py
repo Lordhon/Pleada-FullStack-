@@ -130,3 +130,10 @@ class VerifyJWTToken(APIView):
     permission_classes = [IsAuthenticated]
     def get(self , request ):
         return Response({'message':'ok'} , status=status.HTTP_200_OK)
+
+class MeApiView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get (self ,request):
+        user = request.user
+        company = user.userprofile.company
+        return Response({'company':company})

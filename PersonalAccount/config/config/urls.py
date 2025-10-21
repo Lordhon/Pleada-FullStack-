@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 
 from storage.views import StorageView, Order , OrderLine
-from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken
+from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/order/', Order.as_view()),
     path('api/verify/' , VerifyJWTToken.as_view()),
     path('api/order-line/' , OrderLine.as_view()),
+    path('api/me/' , MeApiView.as_view()),
 
 
 

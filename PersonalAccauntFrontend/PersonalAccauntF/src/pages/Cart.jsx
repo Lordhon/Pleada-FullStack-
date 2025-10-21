@@ -55,7 +55,7 @@ export default function CartPage() {
         setCart(prev => {
             const maxStock = prev[art].kl;
             if (q > maxStock) q = maxStock;
-            const updated = { ...prev, [art]: { ...prev[art], quantity: q } };
+            const updated = { ...prev, [arst]: { ...prev[art], quantity: q } };
             localStorage.setItem("cart", JSON.stringify(updated));
             return updated;
         });
