@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import PrivateEndpoint from "../func/privateendpoint.jsx";
 import axios from "axios";
 
 const url = location.origin;
@@ -26,21 +25,18 @@ export default function CatalogPage() {
     price3: 0,
   };
 
-  // Адаптивность
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
 
- 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -67,12 +63,10 @@ export default function CatalogPage() {
     return () => clearInterval(intervalId);
   }, []);
 
- 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
-
 
   useEffect(() => {
     if (!slug) return;
@@ -92,7 +86,6 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-
   useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredItems(
@@ -104,7 +97,6 @@ export default function CatalogPage() {
     );
   }, [searchQuery, items]);
 
-  
   const addToCart = (item) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -140,7 +132,6 @@ export default function CatalogPage() {
 
   const isInCart = (art) => cart.hasOwnProperty(art);
 
-  
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
     const calculateSum = (priceKey) =>
@@ -175,7 +166,6 @@ export default function CatalogPage() {
 
   return (
     <div style={styles.page}>
-      
       <header style={{ ...styles.header, flexDirection: isMobile ? "column" : "row" }}>
         <div style={styles.headerLeft}>
           <div style={styles.logoSection} onClick={() => navigate("/")}>
@@ -186,25 +176,55 @@ export default function CatalogPage() {
               </div>
             )}
           </div>
+
+          
+          {!isMobile && (
+            <button style={styles.promoButton} onClick={() => navigate("/promo")}>
+              Акции
+            </button>
+          )}
         </div>
 
+        {isMobile && (
+          <button
+            style={{ ...styles.promoButton, marginTop: "10px" }}
+            onClick={() => navigate("/promo")}
+          >
+            Акции
+          </button>
+        )}
+
         <div style={styles.headerRight}>
-          <div style={{ position: "relative" }}>
-            <PrivateEndpoint /> 
-            {isAuthenticated && (
-              <span style={styles.company}>
-                {user?.company || "Нет названия"}
-              </span>
-            )}
-          </div>
+          {!isMobile && (
+            <div style={styles.phoneSection}>
+              +7 930 665-32-71
+              <span style={styles.phoneSub}>для связи по вопросам и заказам</span>
+            </div>
+          )}
+
+          {!isAuthenticated ? (
+            <button style={styles.navButton} onClick={() => navigate("/login")}>
+              Войти
+            </button>
+          ) : (
+            <div style={styles.profileContainer}>
+              <button style={styles.navButton} onClick={() => navigate("/profile")}>
+                Профиль
+              </button>
+              <span style={styles.company}>{user?.company || "Нет названия"}</span>
+            </div>
+          )}
 
           <button style={styles.navButton} onClick={() => navigate("/cart")}>
             Корзина
           </button>
+
+          <button style={styles.navButton} onClick={() => navigate("/")}>
+            Каталог
+          </button>
         </div>
       </header>
 
-      
       <div style={styles.searchContainer}>
         <input
           type="text"
@@ -215,7 +235,6 @@ export default function CatalogPage() {
         />
       </div>
 
-      
       <section style={styles.content}>
         <h1 style={styles.title}>Каталог: {slug?.toUpperCase()}</h1>
 
@@ -361,6 +380,7 @@ const styles = {
   headerLeft: {
     display: "flex",
     alignItems: "center",
+    gap: "20px",
   },
   headerRight: {
     display: "flex",
@@ -371,6 +391,22 @@ const styles = {
   logoImage: { width: "150px", height: "auto", objectFit: "contain" },
   logoText: { display: "flex", flexDirection: "column" },
   logoTitle: { margin: 0, color: "#ffcc00" },
+  promoButton: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: "8px 16px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
+    whiteSpace: "nowrap",
+  },
+  profileContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    position: "relative",
+  },
   company: {
     fontSize: "11px",
     color: "#ffcc00",
@@ -382,6 +418,18 @@ const styles = {
     marginTop: "4px",
     left: "50%",
     transform: "translateX(-50%)",
+  },
+  phoneSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    color: "white",
+    fontSize: "14px",
+  },
+  phoneSub: {
+    color: "#ccc",
+    fontSize: "12px",
+    marginTop: "2px",
   },
   navButton: {
     backgroundColor: "#ffcc00",
