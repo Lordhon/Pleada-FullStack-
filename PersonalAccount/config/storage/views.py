@@ -12,10 +12,10 @@ from rest_framework.views import APIView
 import json
 
 import requests
-
+from django.db.models import Q
 from config import settings
 from storage.models import ItemCompany, StorageItem
-from storage.serializer import StorageItemSerializer, OrderSerializer
+from storage.serializer import StorageItemSerializer, OrderSerializer , SearchItemSerializer
 from django.core.cache import cache
 
 
@@ -109,6 +109,7 @@ class Order(APIView):
 
 
 class OrderLine(APIView):
+    
     def post(self,request):
         data = request.data 
         logger.info(data)
@@ -124,6 +125,17 @@ class OrderLine(APIView):
         
         except Exception as e : 
             logger.error(e)
+
+class SearchItem(APIView):
+    def get(self , request):
+        q = request.query_params.get("q" , "").strip()
+
+        item = StorageItem.objects.select_related("gr").filter(Q(name__icontains=q) | Q(art__icontains=q)).first()
+
+        if not item:
+            return Response({"error": "item not found"} , status=404)
+        serializer = SearchItemSerializer(item)
+        return Response(serializer.data , status=200)
 
         
         

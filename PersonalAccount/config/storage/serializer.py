@@ -13,3 +13,11 @@ class StorageItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.Serializer):
     phone = serializers.CharField(required=True)
     cart = serializers.JSONField()
+
+class SearchItemSerializer(serializers.ModelSerializer):
+    company_slug = serializers.CharField(source="gr.slug" , read_only=True)
+    company_name = serializers.CharField(source="gr.name" , read_only=True)
+
+    class Meta:
+        model = StorageItem
+        fields = ["art" , "name" , "company_slug" , "company_name"]

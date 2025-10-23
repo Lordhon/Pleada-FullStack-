@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -25,18 +25,23 @@ export default function CatalogPage() {
     price3: 0,
   };
 
+  const itemRefs = useRef({}); 
+
+ 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+ 
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
 
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -63,11 +68,13 @@ export default function CatalogPage() {
     return () => clearInterval(intervalId);
   }, []);
 
+ 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
+ 
   useEffect(() => {
     if (!slug) return;
     fetch(`${url}/api/catalog/${slug}/`)
@@ -86,6 +93,7 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  
   useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredItems(
@@ -97,6 +105,21 @@ export default function CatalogPage() {
     );
   }, [searchQuery, items]);
 
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlightArt = params.get("highlight");
+
+    if (highlightArt && itemRefs.current[highlightArt]) {
+      itemRefs.current[highlightArt].scrollIntoView({ behavior: "smooth", block: "center" });
+      itemRefs.current[highlightArt].style.backgroundColor = "#008000";
+      setTimeout(() => {
+        itemRefs.current[highlightArt].style.backgroundColor = "";
+      }, 2000);
+    }
+  }, [items]);
+
+  
   const addToCart = (item) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -132,6 +155,7 @@ export default function CatalogPage() {
 
   const isInCart = (art) => cart.hasOwnProperty(art);
 
+  
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
     const calculateSum = (priceKey) =>
@@ -176,8 +200,6 @@ export default function CatalogPage() {
               </div>
             )}
           </div>
-
-          
           {!isMobile && (
             <button style={styles.promoButton} onClick={() => navigate("/promo")}>
               Акции
@@ -271,6 +293,7 @@ export default function CatalogPage() {
                 filteredItems.map((item, index) => (
                   <tr
                     key={item.art}
+                    ref={(el) => (itemRefs.current[item.art] = el)}
                     style={{
                       ...styles.tableRow,
                       backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",

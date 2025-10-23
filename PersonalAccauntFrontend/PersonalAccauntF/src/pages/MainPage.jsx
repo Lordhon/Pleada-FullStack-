@@ -8,6 +8,12 @@ export default function MainPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchMessage, setSearchMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
+  const [showCallbackModal, setShowCallbackModal] = useState(false);
+  const [callbackPhone, setCallbackPhone] = useState("+7");
+  const [callbackLoading, setCallbackLoading] = useState(false);
 
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
@@ -79,11 +85,63 @@ export default function MainPage() {
   }, []);
 
   const scrollToCatalog = () => catalogRef.current.scrollIntoView({ behavior: "smooth" });
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      const res = await axios.get(`${window.location.origin}/api/search/?q=${encodeURIComponent(searchQuery)}`);
+      if (res.data.art) {
+        navigate(`/catalog/${res.data.company_slug}?highlight=${res.data.art}`);
+      } else {
+        setSearchMessage("Товар не найден");
+        setShowMessage(true);
+        setTimeout(() => setShowMessage(false), 5000);
+      }
+    } catch {
+      setSearchMessage("Ошибка поиска");
+      setShowMessage(true);
+      setTimeout(() => setShowMessage(false), 5000);
+    }
+  };
+
+  const formatPhone = (val) => {
+    if (!val.startsWith("+7")) val = "+7";
+    return "+7" + val.slice(2).replace(/\D/g, "");
+  };
+
+  const handleCallbackPhoneChange = (e) => {
+    setCallbackPhone(formatPhone(e.target.value));
+  };
+
+  const handleCallbackSubmit = async () => {
+    if (!callbackPhone || callbackPhone.length < 12) {
+      alert("Пожалуйста, введите корректный номер телефона");
+      return;
+    }
+
+    setCallbackLoading(true);
+    try {
+      const res = await axios.post(`${window.location.origin}/api/callback/`, {
+        phone: callbackPhone,
+      });
+
+      alert("Спасибо! Мы перезвоним вам в ближайшее время");
+      setShowCallbackModal(false);
+      setCallbackPhone("+7");
+    } catch (error) {
+      console.error(error);
+      alert("Ошибка при отправке номера. Попробуйте еще раз.");
+    } finally {
+      setCallbackLoading(false);
+    }
+  };
+
   const s = styles(isMobile);
 
   return (
     <div style={s.page}>
-      
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.logoSection} onClick={() => navigate("/")}>
@@ -115,54 +173,64 @@ export default function MainPage() {
             </div>
           )}
 
-          <nav style={s.nav}>
-            {!isAuthenticated ? (
-              <button style={s.navButton} onClick={() => navigate("/login")}>
-                Войти
+          {!isAuthenticated ? (
+            <button style={s.navButton} onClick={() => navigate("/login")}>
+              Войти
+            </button>
+          ) : (
+            <div style={s.profileContainer}>
+              <button style={s.navButton} onClick={() => navigate("/profile")}>
+                Профиль
               </button>
-            ) : (
-              <div style={s.profileContainer}>
-                <button style={s.navButton} onClick={() => navigate("/profile")}>
-                  Профиль
-                </button>
-                {user?.company ? (
-                  <span style={s.company}>{user.company}</span>
-                ) : (
-                  <span style={s.company}>Нет названия</span>
-                )}
-              </div>
-            )}
-            <button style={s.navButton} onClick={() => navigate("/cart")}>
-              Корзина
-            </button>
-            <button style={s.navButton} onClick={() => navigate("/")}>
-              Каталог
-            </button>
-          </nav>
+              <span style={s.company}>{user?.company || "Нет названия"}</span>
+            </div>
+          )}
+
+          <button style={s.navButton} onClick={() => navigate("/cart")}>
+            Корзина
+          </button>
+          <button style={s.navButton} onClick={() => navigate("/")}>
+            Каталог
+          </button>
         </div>
       </header>
 
-      
+      <div style={s.searchContainer}>
+        <form onSubmit={handleSearch} style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}>
+          <div style={{ display: "flex", width: "100%" }}>
+            <input
+              type="text"
+              placeholder="Поиск по названию или артикулу..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={s.searchInput}
+            />
+            <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>Найти</button>
+          </div>
+          <div
+            style={{
+              ...s.searchMessage,
+              opacity: showMessage ? 1 : 0,
+              transition: "opacity 0.5s ease-in-out",
+            }}
+          >
+            {searchMessage}
+          </div>
+        </form>
+      </div>
+
       <section style={s.hero}>
         <div style={s.heroContent}>
           <h2 style={s.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
           <p style={s.heroText}>ЛЮБАЯ ДЕТАЛЬ В ЛЮБУЮ ТОЧКУ РОССИИ</p>
-
           <div style={s.buttons}>
-            <button style={s.button} onClick={scrollToCatalog}>
-              Каталог
-            </button>
-            <button style={s.button}>Обратный звонок</button>
+            <button style={s.button} onClick={scrollToCatalog}>Каталог</button>
+            <button style={s.button} onClick={() => setShowCallbackModal(true)}>Обратный звонок</button>
           </div>
-
           <div style={s.photoBanner}>
             <img src={heroImages[currentSlide]} alt={`slide-${currentSlide}`} style={s.sliderImage} />
-            <button style={s.navButtonLeft} onClick={prevSlide}>
-              ❮
-            </button>
-            <button style={s.navButtonRight} onClick={nextSlide}>
-              ❯
-            </button>
+            <button style={s.navButtonLeft} onClick={prevSlide}>❮</button>
+            <button style={s.navButtonRight} onClick={nextSlide}>❯</button>
             <div style={s.dots}>
               {heroImages.map((_, i) => (
                 <span
@@ -176,7 +244,6 @@ export default function MainPage() {
         </div>
       </section>
 
-      
       <section style={s.catalogSection} ref={catalogRef}>
         <div style={s.catalog}>
           <h3 style={s.catalogTitle}>Каталог</h3>
@@ -189,29 +256,57 @@ export default function MainPage() {
           </div>
         </div>
       </section>
+
+     
+      {showCallbackModal && (
+        <div style={s.modalOverlay} onClick={() => !callbackLoading && setShowCallbackModal(false)}>
+          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 style={s.modalTitle}>Обратный звонок</h2>
+            <p style={s.modalText}>Введите ваш номер телефона, и мы вам перезвоним</p>
+            
+            <input
+              type="tel"
+              value={callbackPhone}
+              onChange={handleCallbackPhoneChange}
+              style={s.modalInput}
+              placeholder="Номер телефона"
+              disabled={callbackLoading}
+            />
+
+            <div style={s.modalButtons}>
+              <button
+                style={s.modalSubmitBtn}
+                onClick={handleCallbackSubmit}
+                disabled={callbackLoading}
+              >
+                {callbackLoading ? "Отправка..." : "Отправить"}
+              </button>
+              <button
+                style={s.modalCancelBtn}
+                onClick={() => setShowCallbackModal(false)}
+                disabled={callbackLoading}
+              >
+                Отмена
+              </button>
+            </div>
+
+            <button
+              style={s.modalClose}
+              onClick={() => setShowCallbackModal(false)}
+              disabled={callbackLoading}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export const styles = (mobile) => ({
-  page: {
-    backgroundColor: "#1c1c1c",
-    color: "white",
-    fontFamily: "Arial, sans-serif",
-    minHeight: "100vh",
-    width: "100%",
-    overflowX: "hidden",
-  },
-  header: {
-    display: "flex",
-    flexDirection: mobile ? "column" : "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: mobile ? "10px" : "10px 40px",
-    backgroundColor: "#2a2a2a",
-    gap: "10px",
-    position: "relative",
-  },
+  page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
+  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "10px", position: "relative" },
   headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
   logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
   logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
@@ -221,10 +316,12 @@ export const styles = (mobile) => ({
   phoneSection: { display: "flex", flexDirection: "column", alignItems: "flex-end", color: "white", fontSize: "14px" },
   phoneSub: { color: "#ccc", fontSize: "12px" },
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
-  nav: { display: "flex", alignItems: "center", gap: "20px" },
-  profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   navButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap" },
+  profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
+  searchContainer: { display: "flex", justifyContent: "center", padding: "15px 10px", backgroundColor: "#222" },
+  searchInput: { width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "14px" },
+  searchMessage: { color: "#ffcc00", marginTop: "5px", fontSize: "14px", textAlign: "center" },
   hero: { textAlign: "center", marginBottom: "60px" },
   heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "30px 10px" : "60px 20px 40px", position: "relative" },
   heroTitle: { fontSize: mobile ? "24px" : "40px", marginBottom: "10px" },
@@ -243,4 +340,13 @@ export const styles = (mobile) => ({
   catalogGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" },
   catalogItem: { backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", cursor: "pointer", aspectRatio: "16/9" },
   catalogImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "10px" },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+  modal: { backgroundColor: "#2a2a2a", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "400px", width: "90%", position: "relative" },
+  modalTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },
+  modalText: { color: "#ccc", fontSize: "14px", marginBottom: "20px" },
+  modalInput: { width: "100%", padding: "12px", marginBottom: "20px", borderRadius: "6px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "16px", boxSizing: "border-box" },
+  modalButtons: { display: "flex", gap: "10px", justifyContent: "space-between" },
+  modalSubmitBtn: { flex: 1, backgroundColor: "#ffcc00", color: "#1c1c1c", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
+  modalCancelBtn: { flex: 1, backgroundColor: "#444", color: "white", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
+  modalClose: { position: "absolute", top: "10px", right: "10px", backgroundColor: "transparent", border: "none", color: "#ffcc00", fontSize: "28px", cursor: "pointer", fontWeight: "bold" },
 });

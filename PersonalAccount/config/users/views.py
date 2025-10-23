@@ -137,3 +137,14 @@ class MeApiView(APIView):
         user = request.user
         company = user.userprofile.company
         return Response({'company':company})
+    
+
+class CallBack(APIView):
+    def post(self ,request):
+        a = request.data
+        logger.info(f'телефон: {a}')
+        return Response(status=200)
+        
+
+        
+    
