@@ -25,23 +25,20 @@ export default function CatalogPage() {
     price3: 0,
   };
 
-  const itemRefs = useRef({}); 
+  const itemRefs = useRef({});
 
- 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
- 
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
 
-  
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -68,13 +65,11 @@ export default function CatalogPage() {
     return () => clearInterval(intervalId);
   }, []);
 
- 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
- 
   useEffect(() => {
     if (!slug) return;
     fetch(`${url}/api/catalog/${slug}/`)
@@ -93,7 +88,6 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  
   useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredItems(
@@ -105,7 +99,6 @@ export default function CatalogPage() {
     );
   }, [searchQuery, items]);
 
-  
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const highlightArt = params.get("highlight");
@@ -119,7 +112,6 @@ export default function CatalogPage() {
     }
   }, [items]);
 
-  
   const addToCart = (item) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -155,7 +147,6 @@ export default function CatalogPage() {
 
   const isInCart = (art) => cart.hasOwnProperty(art);
 
-  
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
     const calculateSum = (priceKey) =>
@@ -186,22 +177,24 @@ export default function CatalogPage() {
     return { currentLevelKey: levelKey, nextLevelRemaining: nextRemaining };
   })();
 
-  if (loading) return <div style={styles.loading}>Загрузка...</div>;
+  const s = styles(isMobile);
+
+  if (loading) return <div style={s.loading}>Загрузка...</div>;
 
   return (
-    <div style={styles.page}>
-      <header style={{ ...styles.header, flexDirection: isMobile ? "column" : "row" }}>
-        <div style={styles.headerLeft}>
-          <div style={styles.logoSection} onClick={() => navigate("/")}>
-            <img src="/logo.png" alt="logo" style={styles.logoImage} />
+    <div style={s.page}>
+      <header style={s.header}>
+        <div style={s.headerLeft}>
+          <div style={s.logoSection} onClick={() => navigate("/")}>
+            <img src="/logo.png" alt="logo" style={s.logoImage} />
             {!isMobile && (
-              <div style={styles.logoText}>
-                <h1 style={styles.logoTitle}>ПЛЕЯДЫ</h1>
+              <div style={s.logoText}>
+                <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>
               </div>
             )}
           </div>
           {!isMobile && (
-            <button style={styles.promoButton} onClick={() => navigate("/promo")}>
+            <button style={s.promoButton} onClick={() => navigate("/promo")}>
               Акции
             </button>
           )}
@@ -209,83 +202,108 @@ export default function CatalogPage() {
 
         {isMobile && (
           <button
-            style={{ ...styles.promoButton, marginTop: "10px" }}
+            style={{ ...s.promoButton, marginTop: "10px" }}
             onClick={() => navigate("/promo")}
           >
             Акции
           </button>
         )}
 
-        <div style={styles.headerRight}>
+        <div style={s.headerRight}>
           {!isMobile && (
-            <div style={styles.phoneSection}>
+            <div style={s.phoneSection}>
               +7 930 665-32-71
-              <span style={styles.phoneSub}>для связи по вопросам и заказам</span>
+              <span style={s.phoneSub}>для связи по вопросам и заказам</span>
             </div>
           )}
 
           {!isAuthenticated ? (
-            <button style={styles.navButton} onClick={() => navigate("/login")}>
+            <button style={s.navButton} onClick={() => navigate("/login")}>
               Войти
             </button>
           ) : (
-            <div style={styles.profileContainer}>
-              <button style={styles.navButton} onClick={() => navigate("/profile")}>
+            <div style={s.profileContainer}>
+              <button style={s.navButton} onClick={() => navigate("/profile")}>
                 Профиль
               </button>
-              <span style={styles.company}>{user?.company || "Нет названия"}</span>
+              <span style={s.company}>{user?.company || "Нет названия"}</span>
             </div>
           )}
 
-          <button style={styles.navButton} onClick={() => navigate("/cart")}>
+          <button style={s.navButton} onClick={() => navigate("/cart")}>
             Корзина
           </button>
 
-          <button style={styles.navButton} onClick={() => navigate("/")}>
+          <button style={s.navButton} onClick={() => navigate("/")}>
             Каталог
           </button>
         </div>
       </header>
 
-      <div style={styles.searchContainer}>
+      <div style={s.searchContainer}>
         <input
           type="text"
           placeholder="Поиск по названию или артикулу..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={styles.searchInput}
+          style={s.searchInput}
         />
       </div>
 
-      <section style={styles.content}>
-        <h1 style={styles.title}>Каталог: {slug?.toUpperCase()}</h1>
+     
+      <section style={s.catalogSection}>
+        <div style={s.catalogWrapper}>
+          <h2 style={s.galeryTitle}>Категории</h2>
+          <div style={s.catalogGrid}>
+            {[
+              { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
+              { src: "/mst.jpg", url: "/catalog/mst/" },
+              { src: "/CASE.jpg", url: "/catalog/case/" },
+              { src: "/CAT.jpg", url: "/catalog/caterpillar/" },
+              { src: "/terex.png", url: "/catalog/terex/" },
+              { src: "/JCB.jpg", url: "/catalog/jcb/" },
+              { src: "/bobcat.jpg", url: "/catalog/bobcat/" },
+              { src: "/volvo.jpg", url: "/catalog/volvo/" },
+              { src: "/hidromek.png", url: "/catalog/hidromek/" },
+            ].map((item, index) => (
+              <div
+                key={index}
+                style={{...s.catalogItem, cursor: "pointer", opacity: slug?.toLowerCase() === item.url.split("/")[2] ? 1 : 0.7}}
+                onClick={() => navigate(item.url)}
+              >
+                <img src={item.src} alt={`category-${index}`} style={s.catalogImg} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <div style={styles.tableContainer}>
-          <table
-            style={{
-              ...styles.table,
-              fontSize: isMobile ? "12px" : "14px",
-              minWidth: isMobile ? "100%" : "600px",
-            }}
-          >
+      <section style={s.content}>
+        <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
+        <div style={s.tableContainer}>
+          <table style={s.table}>
             <thead>
-              <tr style={styles.tableHeaderRow}>
-                <th style={styles.tableHeader}>Артикул</th>
-                <th style={styles.tableHeader}>Название</th>
-                <th style={styles.tableHeader}>
-                  Крупный опт<div style={styles.priceSubText}>от 500 000 ₽</div>
+              <tr style={s.tableHeaderRow}>
+                <th style={s.tableHeader}>Артикул</th>
+                <th style={s.tableHeader}>Название</th>
+                <th style={s.tableHeader}>
+                  <div style={s.priceHeaderText}>Крупный опт</div>
+                  <div style={s.priceSubText}>от 500 000 ₽</div>
                 </th>
-                <th style={styles.tableHeader}>
-                  Средний опт<div style={styles.priceSubText}>от 200 000 ₽</div>
+                <th style={s.tableHeader}>
+                  <div style={s.priceHeaderText}>Средний опт</div>
+                  <div style={s.priceSubText}>от 200 000 ₽</div>
                 </th>
-                <th style={styles.tableHeader}>
-                  Мелкий опт<div style={styles.priceSubText}>от 100 000 ₽</div>
+                <th style={s.tableHeader}>
+                  <div style={s.priceHeaderText}>Мелкий опт</div>
+                  <div style={s.priceSubText}>от 100 000 ₽</div>
                 </th>
-                <th style={styles.tableHeader}>
-                  Розница<div style={styles.priceSubText}>без ограничений</div>
+                <th style={s.tableHeader}>
+                  <div style={s.priceHeaderText}>Розница</div>
+                  <div style={s.priceSubText}>без ограничений</div>
                 </th>
-                <th style={styles.tableHeader}>Кол-во</th>
-                <th style={styles.tableHeader}></th>
+                <th style={s.tableHeader}>Кол-во</th>
+                <th style={s.tableHeader}></th>
               </tr>
             </thead>
             <tbody>
@@ -295,15 +313,15 @@ export default function CatalogPage() {
                     key={item.art}
                     ref={(el) => (itemRefs.current[item.art] = el)}
                     style={{
-                      ...styles.tableRow,
+                      ...s.tableRow,
                       backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",
                     }}
                   >
-                    <td style={styles.tableCell}>{item.art}</td>
-                    <td style={styles.tableCell}>{item.name}</td>
+                    <td style={s.tableCell}>{item.art}</td>
+                    <td style={s.tableCell}>{item.name}</td>
 
                     {["price", "price1", "price2", "price3"].map((type) => (
-                      <td style={styles.tableCell} key={type}>
+                      <td style={s.tableCell} key={type}>
                         <div
                           style={{
                             fontWeight: currentLevelKey === type ? "bold" : "normal",
@@ -313,52 +331,36 @@ export default function CatalogPage() {
                           {item[type].toLocaleString()} ₽
                         </div>
                         {currentLevelKey === type && nextLevelRemaining > 0 && (
-                          <div
-                            style={{
-                              color: "#4CAF50",
-                              fontSize: "10px",
-                              marginTop: "2px",
-                            }}
-                          >
+                          <div style={s.nextLevelHint}>
                             До следующего уровня: {nextLevelRemaining.toLocaleString()} ₽
                           </div>
                         )}
                       </td>
                     ))}
 
-                    <td style={styles.tableCell}>{item.kl}</td>
+                    <td style={s.tableCell}>{item.kl}</td>
 
-                    <td style={styles.actionCell}>
+                    <td style={s.actionCell}>
                       {!isInCart(item.art) ? (
                         <button
-                          style={{
-                            ...styles.addButton,
-                            fontSize: isMobile ? "12px" : "14px",
-                          }}
+                          style={s.addButton}
                           onClick={() => addToCart(item)}
                           disabled={item.kl <= 0}
                         >
                           В корзину
                         </button>
                       ) : (
-                        <div style={styles.quantityContainer}>
+                        <div style={s.quantityContainer}>
                           <input
                             type="number"
                             value={cart[item.art].quantity}
                             onChange={(e) => updateQuantity(item.art, e.target.value)}
                             min="1"
                             max={item.kl}
-                            style={{
-                              ...styles.quantityInput,
-                              width: isMobile ? "40px" : "60px",
-                            }}
+                            style={s.quantityInput}
                           />
                           <button
-                            style={{
-                              ...styles.removeButton,
-                              width: isMobile ? "20px" : "25px",
-                              height: isMobile ? "20px" : "25px",
-                            }}
+                            style={s.removeButton}
                             onClick={() => removeFromCart(item.art)}
                             title="Удалить"
                           >
@@ -371,7 +373,7 @@ export default function CatalogPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={styles.noDataCell}>
+                  <td colSpan="8" style={s.noDataCell}>
                     Нет товаров
                   </td>
                 </tr>
@@ -384,7 +386,7 @@ export default function CatalogPage() {
   );
 }
 
-const styles = {
+const styles = (mobile) => ({
   page: {
     backgroundColor: "#1c1c1c",
     color: "white",
@@ -393,11 +395,11 @@ const styles = {
   },
   header: {
     display: "flex",
+    flexDirection: mobile ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "10px 20px",
+    padding: mobile ? "10px" : "10px 40px",
     backgroundColor: "#2a2a2a",
-    flexWrap: "wrap",
     gap: "10px",
   },
   headerLeft: {
@@ -409,11 +411,12 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "15px",
+    flexWrap: "wrap",
   },
-  logoSection: { display: "flex", alignItems: "center", gap: "20px", cursor: "pointer" },
-  logoImage: { width: "150px", height: "auto", objectFit: "contain" },
+  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
+  logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
   logoText: { display: "flex", flexDirection: "column" },
-  logoTitle: { margin: 0, color: "#ffcc00" },
+  logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
   promoButton: {
     backgroundColor: "#ffcc00",
     border: "none",
@@ -463,6 +466,7 @@ const styles = {
     fontWeight: "bold",
     color: "#1c1c1c",
     whiteSpace: "nowrap",
+    fontSize: "14px",
   },
   searchContainer: {
     display: "flex",
@@ -480,26 +484,163 @@ const styles = {
     color: "white",
     fontSize: "14px",
   },
-  content: { padding: "20px 10px", maxWidth: "1400px", margin: "0 auto" },
-  title: { fontSize: "28px", marginBottom: "20px", color: "#ffcc00", textAlign: "center" },
-  tableContainer: { overflowX: "auto", borderRadius: "10px", border: "1px solid #444" },
-  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#2a2a2a" },
+  catalogSection: { 
+    display: "flex", 
+    justifyContent: "center", 
+    width: "100%", 
+    padding: mobile ? "20px 10px" : "30px 20px",
+    backgroundColor: "#1c1c1c",
+  },
+  catalogWrapper: { 
+    width: "100%",
+    maxWidth: "1400px",
+  },
+  galeryTitle: {
+    fontSize: mobile ? "20px" : "24px",
+    marginBottom: "15px",
+    textAlign: "left",
+    color: "#ffcc00",
+    fontWeight: "bold",
+    margin: "0 0 15px 0",
+  },
+  catalogGrid: { 
+    display: "grid", 
+    gridTemplateColumns: mobile ? "repeat(auto-fit, minmax(120px, 1fr))" : "repeat(auto-fit, minmax(180px, 1fr))", 
+    gap: mobile ? "10px" : "15px",
+  },
+  catalogItem: { 
+    backgroundColor: "#2a2a2a", 
+    borderRadius: "8px", 
+    overflow: "hidden", 
+    aspectRatio: "16/9",
+    transition: "transform 0.2s, opacity 0.2s",
+  },
+  catalogImg: { 
+    width: "100%", 
+    height: "100%", 
+    objectFit: "cover", 
+    display: "block", 
+    borderRadius: "8px",
+  },
+  title: {
+    fontSize: mobile ? "20px" : "28px",
+    marginBottom: "20px",
+    color: "#ffcc00",
+    textAlign: "left",
+  },
+  content: { 
+    padding: mobile ? "15px 10px" : "30px 20px", 
+    maxWidth: "1400px", 
+    margin: "0 auto",
+  },
+  tableContainer: { 
+    overflowX: "auto", 
+    borderRadius: "10px", 
+    border: "1px solid #444",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+  },
+  table: { 
+    width: "100%", 
+    borderCollapse: "collapse", 
+    backgroundColor: "#2a2a2a",
+    fontSize: mobile ? "11px" : "13px",
+  },
   tableHeaderRow: { backgroundColor: "#ffcc00" },
   tableHeader: {
-    padding: "10px 6px",
+    padding: mobile ? "12px 8px" : "15px 12px",
     textAlign: "left",
     fontWeight: "bold",
     color: "#1c1c1c",
     borderBottom: "2px solid #444",
+    whiteSpace: "nowrap",
+    fontSize: mobile ? "12px" : "13px",
   },
-  priceSubText: { fontSize: "11px", fontWeight: "normal", color: "#333", marginTop: "2px" },
-  tableRow: { borderBottom: "1px solid #444" },
-  tableCell: { padding: "6px 4px", borderRight: "1px solid #444", color: "#eee", wordBreak: "break-word" },
-  actionCell: { padding: "6px", borderRight: "1px solid #444", minWidth: "90px" },
-  noDataCell: { padding: "30px", textAlign: "center", color: "#aaa" },
-  loading: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#ffcc00" },
-  addButton: { backgroundColor: "#ffcc00", border: "none", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", width: "100%", transition: "all 0.2s" },
-  quantityContainer: { display: "flex", alignItems: "center", gap: "4px", justifyContent: "space-between" },
-  quantityInput: { padding: "2px", borderRadius: "3px", border: "1px solid #555", backgroundColor: "#1c1c1c", color: "white", textAlign: "center" },
-  removeButton: { backgroundColor: "#ff4444", border: "none", borderRadius: "3px", cursor: "pointer", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.2s" },
-};
+  priceHeaderText: {
+    fontWeight: "bold",
+    marginBottom: "3px",
+  },
+  priceSubText: { 
+    fontSize: mobile ? "10px" : "11px", 
+    fontWeight: "normal", 
+    color: "#333",
+    marginTop: "2px",
+  },
+  tableRow: { 
+    borderBottom: "1px solid #444",
+    transition: "background-color 0.2s",
+  },
+  tableCell: { 
+    padding: mobile ? "8px 6px" : "12px 10px", 
+    borderRight: "1px solid #444", 
+    color: "#eee", 
+    wordBreak: "break-word",
+  },
+  nextLevelHint: {
+    color: "#4CAF50",
+    fontSize: "10px",
+    marginTop: "2px",
+    fontWeight: "bold",
+  },
+  actionCell: { 
+    padding: mobile ? "8px 4px" : "12px 8px", 
+    borderRight: "1px solid #444", 
+    minWidth: mobile ? "70px" : "90px",
+  },
+  noDataCell: { 
+    padding: "30px", 
+    textAlign: "center", 
+    color: "#aaa",
+    fontSize: "16px",
+  },
+  loading: { 
+    display: "flex", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    height: "100vh", 
+    color: "#ffcc00",
+    fontSize: "18px",
+  },
+  addButton: { 
+    backgroundColor: "#ffcc00", 
+    border: "none", 
+    padding: mobile ? "6px 8px" : "8px 12px", 
+    borderRadius: "4px", 
+    cursor: "pointer", 
+    fontWeight: "bold", 
+    color: "#1c1c1c", 
+    width: "100%", 
+    transition: "all 0.2s",
+    fontSize: mobile ? "11px" : "12px",
+  },
+  quantityContainer: { 
+    display: "flex", 
+    alignItems: "center", 
+    gap: "4px", 
+    justifyContent: "space-between",
+  },
+  quantityInput: { 
+    flex: 1,
+    padding: "4px", 
+    borderRadius: "3px", 
+    border: "1px solid #555", 
+    backgroundColor: "#1c1c1c", 
+    color: "white", 
+    textAlign: "center",
+    fontSize: "12px",
+  },
+  removeButton: { 
+    backgroundColor: "#ff4444", 
+    border: "none", 
+    borderRadius: "3px", 
+    cursor: "pointer", 
+    fontWeight: "bold", 
+    color: "white", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    transition: "background-color 0.2s",
+    width: mobile ? "24px" : "30px",
+    height: mobile ? "24px" : "30px",
+    fontSize: mobile ? "16px" : "18px",
+  },
+});
