@@ -13,7 +13,8 @@ from users.models import User, UserProfile
 from users.serializer import UserSerializer, UserLoginSerializer
 from dadata import Dadata
 import requests
-
+import os
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,35 +28,63 @@ def generate_token(email):
 
 
 class UserRegister(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            inn = serializer.validated_data['inn']
-            user = serializer.save(is_active=False)
-            code, token = generate_token(email)
-            link = f"https://zpnn.ru/activate?token={token}"
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            send_mail(
-                'Активация Аккаунта',
-                f' Перейди по ссылке для активации:\n{link} или введите код {code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False
-            )
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        inn = serializer.validated_data['inn']
+        phone = serializer.validated_data.get('phone_number', '')
 
-            token_api = "4f350c46fd683f3af591ec1e8339a2fb96e7762b"
-            dadata = Dadata(token_api)
+        
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user:
+            if existing_user.is_active:
+                return Response(
+                    {'error': 'Пользователь с этим email уже зарегистрирован'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            existing_user.delete()
+
+        
+        user = serializer.save(is_active=False)
+
+        
+        profile = UserProfile.objects.create(user=user)
+
+        
+        user.inn = inn
+        user.phone_number = phone
+        user.save()
+
+        
+        try:
+            dadata = Dadata(os.getenv("DADATA_API_KEY"))
             result = dadata.find_by_id("party", inn)
-            company = result[0]['value']
-            UserProfile.objects.create(company=company, user=user)
+            profile.company = result[0]['value'] if result else ''
+            profile.save()
+        except Exception as e:
+            logger.error(f"Dadata error: {e}")
 
+        
+        code, token = generate_token(email)
+        link = f"https://zpnn.ru/activate?token={token}"
 
+        
+        send_mail(
+            'Активация Аккаунта',
+            f'Перейди по ссылке для активации:\n{link} или введите код {code}',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False
+        )
 
+        return Response({'message': 'Код активации отправлен на почту'}, status=status.HTTP_201_CREATED)
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLogin(APIView):
     def post(self, request ):
@@ -142,7 +171,8 @@ class MeApiView(APIView):
 class CallBack(APIView):
     def post(self ,request):
         a = request.data
-        logger.info(f'телефон: {a}')
+        b = json.dumps(a)
+        logger.info(f'телефон: {b}')
         return Response(status=200)
         
 

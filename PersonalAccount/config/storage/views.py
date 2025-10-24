@@ -73,7 +73,7 @@ class Order(APIView):
         if not code_from_client:
 
             code = generate_token(phone)
-            cache.set(f"phone:code:{phone}", code, timeout=1000)
+            cache.set(f"phone:code:{phone}", code, timeout=settings.REDIS_TTL)
             payload = {
                 "messages": [{"recipient": str(phone), "text": f"Код для подтверждения номера телефона: {code} на сайте https://zpnn.ru/ "}]
             }

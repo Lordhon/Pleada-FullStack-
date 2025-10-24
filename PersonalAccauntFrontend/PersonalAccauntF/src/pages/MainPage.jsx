@@ -14,6 +14,8 @@ export default function MainPage() {
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [callbackPhone, setCallbackPhone] = useState("+7");
   const [callbackLoading, setCallbackLoading] = useState(false);
+  const [callbackError, setCallbackError] = useState("");
+  const [callbackSuccess, setCallbackSuccess] = useState("");
 
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
@@ -113,26 +115,28 @@ export default function MainPage() {
 
   const handleCallbackPhoneChange = (e) => {
     setCallbackPhone(formatPhone(e.target.value));
+    setCallbackError("");
+    setCallbackSuccess("");
   };
 
   const handleCallbackSubmit = async () => {
-    if (!callbackPhone || callbackPhone.length < 12) {
-      alert("Пожалуйста, введите корректный номер телефона");
+    setCallbackError("");
+    setCallbackSuccess("");
+
+    const cleaned = callbackPhone.replace(/\D/g, "");
+    if (!/^7\d{10}$/.test(cleaned)) {
+      setCallbackError("Пожалуйста, введите корректный номер телефона (+7 и 10 цифр)");
       return;
     }
 
     setCallbackLoading(true);
     try {
-      const res = await axios.post(`${window.location.origin}/api/callback/`, {
-        phone: callbackPhone,
-      });
-
-      alert("Спасибо! Мы перезвоним вам в ближайшее время");
-      setShowCallbackModal(false);
+      await axios.post(`${window.location.origin}/api/callback/`, { phone: callbackPhone });
+      setCallbackSuccess("Спасибо! Мы вам перезвоним в ближайшее время.");
       setCallbackPhone("+7");
     } catch (error) {
       console.error(error);
-      alert("Ошибка при отправке номера. Попробуйте еще раз.");
+      setCallbackError("Ошибка при отправке номера. Попробуйте еще раз.");
     } finally {
       setCallbackLoading(false);
     }
@@ -160,7 +164,10 @@ export default function MainPage() {
         </div>
 
         {isMobile && (
-          <button style={{ ...s.promoButton, marginTop: "10px" }} onClick={() => navigate("/promo")}>
+          <button
+            style={{ ...s.promoButton, marginTop: "10px" }}
+            onClick={() => navigate("/promo")}
+          >
             Акции
           </button>
         )}
@@ -196,7 +203,10 @@ export default function MainPage() {
       </header>
 
       <div style={s.searchContainer}>
-        <form onSubmit={handleSearch} style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}>
+        <form
+          onSubmit={handleSearch}
+          style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}
+        >
           <div style={{ display: "flex", width: "100%" }}>
             <input
               type="text"
@@ -205,7 +215,9 @@ export default function MainPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={s.searchInput}
             />
-            <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>Найти</button>
+            <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>
+              Найти
+            </button>
           </div>
           <div
             style={{
@@ -224,9 +236,14 @@ export default function MainPage() {
           <h2 style={s.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
           <p style={s.heroText}>ЛЮБАЯ ДЕТАЛЬ В ЛЮБУЮ ТОЧКУ РОССИИ</p>
           <div style={s.buttons}>
-            <button style={s.button} onClick={scrollToCatalog}>Каталог</button>
-            <button style={s.button} onClick={() => setShowCallbackModal(true)}>Обратный звонок</button>
+            <button style={s.button} onClick={scrollToCatalog}>
+              Каталог
+            </button>
+            <button style={s.button} onClick={() => setShowCallbackModal(true)}>
+              Обратный звонок
+            </button>
           </div>
+
           <div style={s.photoBanner}>
             <img src={heroImages[currentSlide]} alt={`slide-${currentSlide}`} style={s.sliderImage} />
             <button style={s.navButtonLeft} onClick={prevSlide}>❮</button>
@@ -235,7 +252,10 @@ export default function MainPage() {
               {heroImages.map((_, i) => (
                 <span
                   key={i}
-                  style={{ ...s.dot, backgroundColor: i === currentSlide ? "#ffcc00" : "#555" }}
+                  style={{
+                    ...s.dot,
+                    backgroundColor: i === currentSlide ? "#ffcc00" : "#555",
+                  }}
                   onClick={() => setCurrentSlide(i)}
                 />
               ))}
@@ -257,13 +277,12 @@ export default function MainPage() {
         </div>
       </section>
 
-     
       {showCallbackModal && (
         <div style={s.modalOverlay} onClick={() => !callbackLoading && setShowCallbackModal(false)}>
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
             <h2 style={s.modalTitle}>Обратный звонок</h2>
             <p style={s.modalText}>Введите ваш номер телефона, и мы вам перезвоним</p>
-            
+
             <input
               type="tel"
               value={callbackPhone}
@@ -272,6 +291,13 @@ export default function MainPage() {
               placeholder="Номер телефона"
               disabled={callbackLoading}
             />
+
+            {callbackError && (
+              <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{callbackError}</div>
+            )}
+            {callbackSuccess && (
+              <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{callbackSuccess}</div>
+            )}
 
             <div style={s.modalButtons}>
               <button

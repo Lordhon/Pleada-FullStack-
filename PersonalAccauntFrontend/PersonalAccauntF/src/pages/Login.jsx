@@ -1,98 +1,116 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
-const  url= location.origin
-function Login() {
-    const [formData, setFormData] = useState({ email: "", password: "" });
-    const [captchaToken, setCaptchaToken] = useState(null);
-    const [message, setMessage] = useState("");
-    const navigate = useNavigate();
+import { styles } from "./MainPage"; // используем общий стиль
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+const url = location.origin;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-        if (!captchaToken) {
-            setMessage("Подтвердите, что вы не робот!");
-            return;
-        }
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const [message, setMessage] = useState("");
 
-        try {
-            const response = await axios.post(`${url}/api/login/`, {
-                ...formData,
-                recaptcha: captchaToken,
-            });
-            localStorage.setItem("token", response.data.access);
-            navigate("/");
-            setMessage("Успешный вход!");
-        } catch (error) {
-            if (error.response) {
-                setMessage("Неверный email или пароль");
-            } else {
-                setMessage("Произошла ошибка. Попробуйте позже.");
-            }
-        }
-    };
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#f5f5f5" }}>
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "15px",
-                    background: "#fff",
-                    padding: "30px",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                    width: "300px",
-                }}
-            >
-                <h2 style={{ textAlign: "center", marginBottom: "10px" }}>Вход</h2>
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Пароль"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-                />
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+      document.body.style.margin = "0";
+      document.body.style.padding = "0";
+      document.documentElement.style.margin = "0";
+      document.documentElement.style.padding = "0";
+      document.body.style.backgroundColor = "#1c1c1c";
+    }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
 
-                <ReCAPTCHA
-                    sitekey="6LeXht0rAAAAAKBxY-SSKfnVqv-nH5m5OESd6HuF"
-                    onChange={(token) => setCaptchaToken(token)}
-                />
+    if (!captchaToken) {
+      setMessage("Подтвердите, что вы не робот!");
+      return;
+    }
 
-                <button type="submit" style={{ padding: "10px", border: "none", borderRadius: "5px", background: "#4CAF50", color: "#fff", fontWeight: "bold", cursor: "pointer" }}>
-                    Войти
-                </button>
-                {message && <p style={{ color: message.includes("успеш") ? "green" : "red" }}>{message}</p>}
+    try {
+      const response = await axios.post(`${url}/api/login/`, {
+        ...formData,
+        recaptcha: captchaToken,
+      });
+      localStorage.setItem("token", response.data.access);
+      setMessage("Успешный вход!");
+      navigate("/");
+    } catch (error) {
+      if (error.response) {
+        setMessage("Неверный email или пароль");
+      } else {
+        setMessage("Произошла ошибка. Попробуйте позже.");
+      }
+    }
+  };
 
+  const s = styles(isMobile);
 
-                <p
-                    style={{ fontSize: "16px", textAlign: "center", marginTop: "20", cursor: "pointer", color: "#007BFF" }}
-                    onClick={() => navigate("/register")}
-                >
-                    Зарегистрироваться
-                </p>
-            </form>
-        </div>
-    );
+  return (
+    <div style={{ ...s.page, display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          ...s.modal,
+          maxWidth: "400px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+        }}
+      >
+        <h2 style={{ ...s.modalTitle, textAlign: "center" }}>Вход</h2>
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          style={s.modalInput}
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Пароль"
+          value={formData.password}
+          onChange={handleChange}
+          style={s.modalInput}
+          required
+        />
+
+        <ReCAPTCHA
+          sitekey="6LeXht0rAAAAAKBxY-SSKfnVqv-nH5m5OESd6HuF"
+          onChange={(token) => setCaptchaToken(token)}
+        />
+
+        <button type="submit" style={s.modalSubmitBtn}>
+          Войти
+        </button>
+
+        {message && (
+          <div style={{ color: message.toLowerCase().includes("успеш") ? "limegreen" : "red", fontSize: "14px" }}>
+            {message}
+          </div>
+        )}
+
+        <p
+          style={{ color: "#ffcc00", cursor: "pointer", textAlign: "center" }}
+          onClick={() => navigate("/register")}
+        >
+          Зарегистрироваться
+        </p>
+      </form>
+    </div>
+  );
 }
-
-export default Login;

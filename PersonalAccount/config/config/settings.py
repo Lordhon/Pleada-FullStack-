@@ -12,6 +12,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 PASSWORD_DB = os.getenv("PASSWORD_DB")
 RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "SECRET_KEY_GOOGLE")
+DADATA_API_KEY = os.getenv("DADATA_API_KEY")
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -60,9 +61,15 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_BEAT_SCHEDULE = {
     'update-storage-every-10-min': {
         'task': 'storage.tasks.fetch_and_update_storage',
-        'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute='*/10'),
     },
+    'delete_user': {
+        'task': 'users.tasks.delete_user',
+        'schedule': crontab(minute='*/1440')
+    }
 }
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -128,11 +135,11 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
         },
-        "TIMEOUT": 1000,
+        "TIMEOUT": 60*60*24,
     }
 }
 
-REDIS_TTL = 1000
+REDIS_TTL = 60*60*24
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
