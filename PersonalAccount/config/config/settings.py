@@ -45,11 +45,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.yandex.ru'
+
+
+EMAIL_BACKEND = "users.email_backend.UnsafeEmailBackend"
+
+EMAIL_HOST = 'mail.zevsnet.ru'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ivleff.timivlev@yandex.ru'
+EMAIL_HOST_USER = 'site@rfzp.ru'
 EMAIL_HOST_PASSWORD = EMAIL_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -60,7 +63,7 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
     'update-storage-every-10-min': {
-        'task': 'storage.tasks.fetch_and_update_storage',
+        'task': 'storage.tasks.fetch_and_update_sыtorage',
         'schedule': crontab(minute='*/10'),
     },
     'delete_user': {
