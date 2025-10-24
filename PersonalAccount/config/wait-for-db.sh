@@ -1,3 +1,5 @@
+#!/bin/sh
+
 
 : "${POSTGRES_HOST:?Need to set POSTGRES_HOST}"
 : "${POSTGRES_PORT:?Need to set POSTGRES_PORT}"

@@ -16,8 +16,15 @@ import requests
 import os
 import json
 import logging
+from datetime import date
+import hashlib
 
 logger = logging.getLogger(__name__)
+def getkey():
+    data = date.today()
+    digest = hashlib.md5(f'{data}'.encode('utf-8')).hexdigest()
+    return digest
+
 
 def generate_token(email):
     code = f"{random.randint(0, 999999):06d}"
@@ -171,8 +178,14 @@ class MeApiView(APIView):
 class CallBack(APIView):
     def post(self ,request):
         a = request.data
-        b = json.dumps(a)
-        logger.info(f'телефон: {b}')
+        b = json.dumps(a , ensure_ascii=False)
+        headers = {
+                "Content-Type": "application/json",
+                "KEY": getkey()
+            }
+        r = requests.get(f'https://parus.ohelp.ru/api_lk?f=callback&obj={b}' , headers=headers)
+
+        logger.info(f'response: {r.json()}')
         return Response(status=200)
         
 

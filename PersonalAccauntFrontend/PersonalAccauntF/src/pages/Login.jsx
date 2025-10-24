@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
-import { styles } from "./MainPage"; // используем общий стиль
+import { styles } from "./MainPage"; 
 
 const url = location.origin;
 

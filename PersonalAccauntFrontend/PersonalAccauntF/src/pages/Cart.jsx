@@ -25,6 +25,8 @@ export default function CartPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [orderMessage, setOrderMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const priceChecks = {
     price: 500000,
@@ -143,7 +145,12 @@ export default function CartPage() {
 
   const handleQuickOrder = async () => {
     try {
-      const payload = awaitingCode ? { phone, code, cart } : { phone, cart };
+      setIsLoading(true);
+      setOrderMessage("");
+
+      const payload = awaitingCode
+        ? { phone: formatPhone(phone), code, cart }
+        : { phone: formatPhone(phone), cart };
 
       const res = await fetch(`${url}/api/order/`, {
         method: "POST",
@@ -160,32 +167,48 @@ export default function CartPage() {
 
       if (!awaitingCode && data.verification_required) {
         setAwaitingCode(true);
-        alert("Код подтверждения отправлен на телефон");
+        setOrderMessage("Код подтверждения отправлен на телефон");
+        setIsLoading(false);
         return;
       }
 
+      // Успешный заказ
       localStorage.setItem(
         "currentOrder",
         JSON.stringify({ cart, totalCartSum, currentPriceLevel })
       );
       if (data.token) localStorage.setItem("token", data.token);
+
       setShowQuickOrder(false);
       setAwaitingCode(false);
-      navigate("/");
+      setCart({});
+      localStorage.removeItem("cart");
+
+      
+      setOrderMessage(`✅ Заказ оформлен! `);
+      setPhone("+7");
+      setCode("");
+
+      setTimeout(() => setOrderMessage(""), 8000);
     } catch (err) {
       console.error(err);
-      alert(
+      setOrderMessage(
         awaitingCode
-          ? "Неверный код подтверждения"
-          : "Не удалось отправить код подтверждения"
+          ? "✗ Неверный код подтверждения. Попробуйте еще раз"
+          : "✗ Не удалось отправить код подтверждения"
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAuthenticatedOrder = async () => {
     try {
+      setIsLoading(true);
+      setOrderMessage("");
+
       const token = localStorage.getItem("token");
-      if (!token) return alert("Пожалуйста, авторизуйтесь");
+      if (!token) return setOrderMessage("Пожалуйста, авторизуйтесь");
 
       const res = await fetch(`${url}/api/order/`, {
         method: "POST",
@@ -198,23 +221,30 @@ export default function CartPage() {
 
       if (!res.ok) {
         if (res.status === 401) {
-          alert("Сессия истекла. Пожалуйста, авторизуйтесь заново.");
+          setOrderMessage("Сессия истекла. Пожалуйста, авторизуйтесь заново.");
           localStorage.removeItem("token");
-          navigate("/login");
           return;
         }
         const text = await res.text();
         throw new Error(`Ошибка запроса: ${res.status} ${text}`);
       }
 
+      const data = await res.json();
+
       localStorage.setItem(
         "currentOrder",
         JSON.stringify({ cart, totalCartSum, currentPriceLevel })
       );
-      navigate("/");
+      setCart({});
+      localStorage.removeItem("cart");
+
+      const orderId = data.order_id || data.id || "—";
+      setOrderMessage(`✅ Заказ оформлен! ID: ${orderId}`);
     } catch (err) {
       console.error(err);
-      alert("Не удалось оформить заказ. Попробуйте еще раз.");
+      setOrderMessage("Не удалось оформить заказ. Попробуйте еще раз.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -222,9 +252,14 @@ export default function CartPage() {
 
   return (
     <div style={s.page}>
+      
       <header style={s.header}>
         <div style={s.headerLeft}>
-          <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
+          <div
+            style={s.logoSection}
+            onClick={() => navigate("/")}
+            title="На главную"
+          >
             <img src="/logo.png" alt="logo" style={s.logoImage} />
             {!isMobile && (
               <div style={s.logoText}>
@@ -233,7 +268,6 @@ export default function CartPage() {
             )}
           </div>
 
-          
           {!isMobile && (
             <button style={s.promoButton} onClick={() => navigate("/promo")}>
               Акции
@@ -241,7 +275,6 @@ export default function CartPage() {
           )}
         </div>
 
-        
         {isMobile && (
           <button
             style={{ ...s.promoButton, marginTop: "10px" }}
@@ -255,7 +288,9 @@ export default function CartPage() {
           {!isMobile && (
             <div style={s.phoneSection}>
               +7 930 665-32-71
-              <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              <span style={s.phoneSub}>
+                для связи по вопросам и заказам
+              </span>
             </div>
           )}
 
@@ -266,10 +301,15 @@ export default function CartPage() {
               </button>
             ) : (
               <div style={s.profileContainer}>
-                <button style={s.navButton} onClick={() => navigate("/profile")}>
+                <button
+                  style={s.navButton}
+                  onClick={() => navigate("/profile")}
+                >
                   Профиль
                 </button>
-                {user?.company && <span style={s.company}>{user.company}</span>}
+                {user?.company && (
+                  <span style={s.company}>{user.company}</span>
+                )}
               </div>
             )}
             <button style={s.navButton} onClick={() => navigate("/cart")}>
@@ -282,84 +322,194 @@ export default function CartPage() {
         </div>
       </header>
 
+      
       <div style={s.container}>
         <h1 style={s.title}>Ваша корзина</h1>
+
         {cartItems.length === 0 ? (
           <div style={s.empty}>Корзина пуста</div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>Артикул</th>
-                  <th style={s.th}>Название</th>
-                  <th style={s.th}>Цена (₽)</th>
-                  <th style={s.th}>Кол-во</th>
-                  <th style={s.th}>Сумма (₽)</th>
-                  <th style={s.th}>Экономия</th>
-                  <th style={s.th}>На складе</th>
-                  <th style={s.th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item) => {
-                  const dynamicPrice = dynamicPrices[item.art];
-                  const sumItem = dynamicPrice * item.quantity;
-                  const save = item.price3 * item.quantity - sumItem;
-                  return (
-                    <tr key={item.art}>
-                      <td style={s.td}>{item.art}</td>
-                      <td style={s.td}>{item.name}</td>
-                      <td style={s.td}>{dynamicPrice.toLocaleString()}</td>
-                      <td style={s.td}>
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          min="1"
-                          max={item.kl}
-                          onChange={(e) => updateQuantity(item.art, e.target.value)}
-                          style={{ ...s.input, width: isMobile ? "50px" : "70px" }}
-                        />
-                      </td>
-                      <td style={s.td}>{sumItem.toLocaleString()}</td>
-                      <td style={{ ...s.td, color: save > 0 ? "#0f0" : "#ccc" }}>
-                        {save > 0 ? `-${save.toLocaleString()}` : "-"}
-                      </td>
-                      <td style={s.td}>{item.kl}</td>
-                      <td style={s.td}>
-                        <button onClick={() => removeItem(item.art)} style={s.removeBtn}>
-                          ×
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <>
+            <div style={{ overflowX: "auto" }}>
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    <th style={s.th}>Артикул</th>
+                    <th style={s.th}>Название</th>
+                    <th style={s.th}>Цена (₽)</th>
+                    <th style={s.th}>Кол-во</th>
+                    <th style={s.th}>Сумма (₽)</th>
+                    <th style={s.th}>Экономия</th>
+                    <th style={s.th}>На складе</th>
+                    <th style={s.th}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cartItems.map((item) => {
+                    const dynamicPrice = dynamicPrices[item.art];
+                    const sumItem = dynamicPrice * item.quantity;
+                    const save = item.price3 * item.quantity - sumItem;
+                    return (
+                      <tr key={item.art}>
+                        <td style={s.td}>{item.art}</td>
+                        <td style={s.td}>{item.name}</td>
+                        <td style={s.td}>{dynamicPrice.toLocaleString()}</td>
+                        <td style={s.td}>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            min="1"
+                            max={item.kl}
+                            onChange={(e) =>
+                              updateQuantity(item.art, e.target.value)
+                            }
+                            style={{
+                              ...s.input,
+                              width: isMobile ? "50px" : "70px",
+                            }}
+                          />
+                        </td>
+                        <td style={s.td}>{sumItem.toLocaleString()}</td>
+                        <td
+                          style={{
+                            ...s.td,
+                            color: save > 0 ? "#0f0" : "#ccc",
+                          }}
+                        >
+                          {save > 0 ? `-${save.toLocaleString()}` : "-"}
+                        </td>
+                        <td style={s.td}>{item.kl}</td>
+                        <td style={s.td}>
+                          <button
+                            onClick={() => removeItem(item.art)}
+                            style={s.removeBtn}
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
 
-            <div style={s.summary}>
-              <h3 style={s.summaryTitle}>
-                Итого: {totalCartSum.toLocaleString()} ₽
-              </h3>
-              <div style={s.currentLevel}>
-                Уровень цен: <strong>{currentPriceLevel}</strong>
+              <div style={s.summary}>
+                <h3 style={s.summaryTitle}>
+                  Итого: {totalCartSum.toLocaleString()} ₽
+                </h3>
+                <div style={s.currentLevel}>
+                  Уровень цен: <strong>{currentPriceLevel}</strong>
+                </div>
+                {totalSavings > 0 && (
+                  <div style={s.savings}>
+                    Экономия:{" "}
+                    <strong style={{ color: "#0f0" }}>
+                      {totalSavings.toLocaleString()} ₽
+                    </strong>
+                  </div>
+                )}
               </div>
-              {totalSavings > 0 && (
-                <div style={s.savings}>
-                  Экономия:{" "}
-                  <strong style={{ color: "#0f0" }}>
-                    {totalSavings.toLocaleString()} ₽
-                  </strong>
+
+              <button style={s.checkoutBtn} onClick={handleCheckout}>
+                Оформить заказ
+              </button>
+
+              {orderMessage && (
+                <div
+                  style={{
+                    marginTop: "20px",
+                    color: "#0f0",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {orderMessage}
                 </div>
               )}
             </div>
-
-            <button style={s.checkoutBtn} onClick={handleCheckout}>
-              Оформить заказ
-            </button>
-          </div>
+          </>
         )}
       </div>
+
+    
+      {showQuickOrder && (
+        <div style={s.modal}>
+          <div style={s.modalContent}>
+            <h2 style={s.modalTitle}>Быстрый заказ</h2>
+
+            {!awaitingCode ? (
+              <>
+                <label style={s.label}>Ваш телефон:</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 (XXX) XXX-XX-XX"
+                  style={s.modalInput}
+                />
+                <p style={s.helperText}>
+                  На номер будет отправлен код подтверждения
+                </p>
+              </>
+            ) : (
+              <>
+                <label style={s.label}>Код подтверждения:</label>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Введите код"
+                  style={s.modalInput}
+                />
+              </>
+            )}
+
+            <div style={s.modalButtons}>
+              <button
+                onClick={handleQuickOrder}
+                disabled={isLoading}
+                style={{
+                  ...s.modalBtn,
+                  ...(isLoading ? s.modalBtnDisabled : {}),
+                }}
+              >
+                {isLoading
+                  ? "Загрузка..."
+                  : awaitingCode
+                  ? "Подтвердить"
+                  : "Отправить код"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowQuickOrder(false);
+                  setAwaitingCode(false);
+                  setCode("");
+                  setPhone("+7");
+                  setOrderMessage("");
+                }}
+                style={s.modalBtnCancel}
+              >
+                Отмена
+              </button>
+            </div>
+
+            {orderMessage && (
+              <div
+                style={{
+                  marginTop: "15px",
+                  color: "#0f0",
+                  fontSize: "14px",
+                  textAlign: "center",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {orderMessage}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -383,11 +533,7 @@ const styles = (mobile) => ({
     gap: "10px",
     position: "relative",
   },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
+  headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
   logoSection: {
     display: "flex",
     alignItems: "center",
@@ -399,15 +545,8 @@ const styles = (mobile) => ({
     height: "auto",
     objectFit: "contain",
   },
-  logoText: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  logoTitle: {
-    margin: 0,
-    color: "#ffcc00",
-    fontSize: mobile ? "22px" : "30px",
-  },
+  logoText: { display: "flex", flexDirection: "column" },
+  logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
   promoButton: {
     backgroundColor: "#ffcc00",
     border: "none",
@@ -418,11 +557,7 @@ const styles = (mobile) => ({
     color: "#1c1c1c",
     whiteSpace: "nowrap",
   },
-  headerRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
+  headerRight: { display: "flex", alignItems: "center", gap: "20px" },
   phoneSection: {
     display: "flex",
     flexDirection: "column",
@@ -430,16 +565,8 @@ const styles = (mobile) => ({
     color: "white",
     fontSize: "14px",
   },
-  phoneSub: {
-    color: "#ccc",
-    fontSize: "12px",
-    marginTop: "2px",
-  },
-  nav: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
+  phoneSub: { color: "#ccc", fontSize: "12px", marginTop: "2px" },
+  nav: { display: "flex", alignItems: "center", gap: "20px" },
   navButton: {
     backgroundColor: "#ffcc00",
     border: "none",
@@ -469,11 +596,7 @@ const styles = (mobile) => ({
     left: "50%",
     transform: "translateX(-50%)",
   },
-  container: {
-    maxWidth: "1400px",
-    margin: "0 auto",
-    padding: "0 20px",
-  },
+  container: { maxWidth: "1400px", margin: "0 auto", padding: "0 20px" },
   title: {
     fontSize: "32px",
     margin: "40px 0 30px",
@@ -502,11 +625,7 @@ const styles = (mobile) => ({
     fontSize: "14px",
     color: "#ffcc00",
   },
-  td: {
-    padding: "15px 12px",
-    fontSize: "14px",
-    verticalAlign: "middle",
-  },
+  td: { padding: "15px 12px", fontSize: "14px", verticalAlign: "middle" },
   input: {
     padding: "8px",
     borderRadius: "4px",
@@ -533,16 +652,8 @@ const styles = (mobile) => ({
     borderRadius: "8px",
     boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
   },
-  summaryTitle: {
-    margin: "0 0 15px 0",
-    fontSize: "24px",
-    color: "#fff",
-  },
-  currentLevel: {
-    fontSize: "16px",
-    marginBottom: "10px",
-    color: "#ffcc00",
-  },
+  summaryTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#fff" },
+  currentLevel: { fontSize: "16px", marginBottom: "10px", color: "#ffcc00" },
   savings: {
     fontSize: "18px",
     marginBottom: "15px",
@@ -559,5 +670,88 @@ const styles = (mobile) => ({
     cursor: "pointer",
     fontSize: "16px",
     fontWeight: "bold",
+  },
+
+
+  modal: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: "#2a2a2a",
+    padding: "30px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+    width: "90%",
+    maxWidth: "400px",
+  },
+  modalTitle: {
+    margin: "0 0 20px 0",
+    color: "#ffcc00",
+    fontSize: "24px",
+    fontWeight: "bold",
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    color: "#fff",
+    fontWeight: "500",
+  },
+  modalInput: {
+    width: "100%",
+    padding: "12px",
+    marginBottom: "15px",
+    border: "1px solid #555",
+    borderRadius: "4px",
+    backgroundColor: "#1c1c1c",
+    color: "white",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    outline: "none",
+  },
+  helperText: {
+    fontSize: "12px",
+    color: "#aaa",
+    margin: "0 0 20px 0",
+  },
+  modalButtons: {
+    display: "flex",
+    gap: "10px",
+    justifyContent: "space-between",
+  },
+  modalBtn: {
+    flex: 1,
+    backgroundColor: "#ffcc00",
+    color: "#1c1c1c",
+    padding: "12px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
+  modalBtnDisabled: {
+    backgroundColor: "#999",
+    cursor: "not-allowed",
+    opacity: 0.6,
+  },
+  modalBtnCancel: {
+    flex: 1,
+    backgroundColor: "#555",
+    color: "white",
+    padding: "12px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
   },
 });

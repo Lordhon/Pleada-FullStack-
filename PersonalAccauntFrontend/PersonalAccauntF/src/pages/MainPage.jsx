@@ -13,6 +13,7 @@ export default function MainPage() {
   const [showMessage, setShowMessage] = useState(false);
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [callbackPhone, setCallbackPhone] = useState("+7");
+  const [callbackName, setCallbackName] = useState("");
   const [callbackLoading, setCallbackLoading] = useState(false);
   const [callbackError, setCallbackError] = useState("");
   const [callbackSuccess, setCallbackSuccess] = useState("");
@@ -31,7 +32,6 @@ export default function MainPage() {
 
   const heroImages = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg", "/slide4.jpg"];
   const [currentSlide, setCurrentSlide] = useState(0);
-
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
 
@@ -66,15 +66,11 @@ export default function MainPage() {
 
     const verifyAndFetchUser = async () => {
       try {
-        await axios.get(`${url}/api/verify/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const res = await axios.get(`${url}/api/me/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.get(`${url}/api/verify/`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${url}/api/me/`, { headers: { Authorization: `Bearer ${token}` } });
         setUser(res.data);
         setIsAuthenticated(true);
-      } catch (error) {
+      } catch {
         localStorage.removeItem("token");
         setIsAuthenticated(false);
         setUser(null);
@@ -91,7 +87,6 @@ export default function MainPage() {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-
     try {
       const res = await axios.get(`${window.location.origin}/api/search/?q=${encodeURIComponent(searchQuery)}`);
       if (res.data.art) {
@@ -119,9 +114,20 @@ export default function MainPage() {
     setCallbackSuccess("");
   };
 
+  const handleCallbackNameChange = (e) => {
+    setCallbackName(e.target.value);
+    setCallbackError("");
+    setCallbackSuccess("");
+  };
+
   const handleCallbackSubmit = async () => {
     setCallbackError("");
     setCallbackSuccess("");
+
+    if (!callbackName.trim()) {
+      setCallbackError("Пожалуйста, введите ваше имя");
+      return;
+    }
 
     const cleaned = callbackPhone.replace(/\D/g, "");
     if (!/^7\d{10}$/.test(cleaned)) {
@@ -131,12 +137,16 @@ export default function MainPage() {
 
     setCallbackLoading(true);
     try {
-      await axios.post(`${window.location.origin}/api/callback/`, { phone: callbackPhone });
+      console.log(callbackName)
+      await axios.post(`${window.location.origin}/api/callback/`, {
+        name: callbackName,
+        phone: callbackPhone,
+      });
       setCallbackSuccess("Спасибо! Мы вам перезвоним в ближайшее время.");
       setCallbackPhone("+7");
-    } catch (error) {
-      console.error(error);
-      setCallbackError("Ошибка при отправке номера. Попробуйте еще раз.");
+      setCallbackName("");
+    } catch {
+      setCallbackError("Ошибка при отправке данных. Попробуйте еще раз.");
     } finally {
       setCallbackLoading(false);
     }
@@ -146,6 +156,7 @@ export default function MainPage() {
 
   return (
     <div style={s.page}>
+      
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.logoSection} onClick={() => navigate("/")}>
@@ -157,19 +168,12 @@ export default function MainPage() {
             )}
           </div>
           {!isMobile && (
-            <button style={s.promoButton} onClick={() => navigate("/promo")}>
-              Акции
-            </button>
+            <button style={s.promoButton} onClick={() => navigate("/promo")}>Акции</button>
           )}
         </div>
 
         {isMobile && (
-          <button
-            style={{ ...s.promoButton, marginTop: "10px" }}
-            onClick={() => navigate("/promo")}
-          >
-            Акции
-          </button>
+          <button style={{ ...s.promoButton, marginTop: "10px" }} onClick={() => navigate("/promo")}>Акции</button>
         )}
 
         <div style={s.headerRight}>
@@ -181,32 +185,22 @@ export default function MainPage() {
           )}
 
           {!isAuthenticated ? (
-            <button style={s.navButton} onClick={() => navigate("/login")}>
-              Войти
-            </button>
+            <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
           ) : (
             <div style={s.profileContainer}>
-              <button style={s.navButton} onClick={() => navigate("/profile")}>
-                Профиль
-              </button>
+              <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
               <span style={s.company}>{user?.company || "Нет названия"}</span>
             </div>
           )}
 
-          <button style={s.navButton} onClick={() => navigate("/cart")}>
-            Корзина
-          </button>
-          <button style={s.navButton} onClick={() => navigate("/")}>
-            Каталог
-          </button>
+          <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+          {/*<button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>*/}
         </div>
       </header>
 
+      
       <div style={s.searchContainer}>
-        <form
-          onSubmit={handleSearch}
-          style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}
-        >
+        <form onSubmit={handleSearch} style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}>
           <div style={{ display: "flex", width: "100%" }}>
             <input
               type="text"
@@ -215,33 +209,22 @@ export default function MainPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={s.searchInput}
             />
-            <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>
-              Найти
-            </button>
+            <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>Найти</button>
           </div>
-          <div
-            style={{
-              ...s.searchMessage,
-              opacity: showMessage ? 1 : 0,
-              transition: "opacity 0.5s ease-in-out",
-            }}
-          >
+          <div style={{ ...s.searchMessage, opacity: showMessage ? 1 : 0, transition: "opacity 0.5s" }}>
             {searchMessage}
           </div>
         </form>
       </div>
 
+      
       <section style={s.hero}>
         <div style={s.heroContent}>
           <h2 style={s.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
           <p style={s.heroText}>ЛЮБАЯ ДЕТАЛЬ В ЛЮБУЮ ТОЧКУ РОССИИ</p>
           <div style={s.buttons}>
-            <button style={s.button} onClick={scrollToCatalog}>
-              Каталог
-            </button>
-            <button style={s.button} onClick={() => setShowCallbackModal(true)}>
-              Обратный звонок
-            </button>
+            <button style={s.button} onClick={scrollToCatalog}>Каталог</button>
+            <button style={s.button} onClick={() => setShowCallbackModal(true)}>Обратный звонок</button>
           </div>
 
           <div style={s.photoBanner}>
@@ -252,10 +235,7 @@ export default function MainPage() {
               {heroImages.map((_, i) => (
                 <span
                   key={i}
-                  style={{
-                    ...s.dot,
-                    backgroundColor: i === currentSlide ? "#ffcc00" : "#555",
-                  }}
+                  style={{ ...s.dot, backgroundColor: i === currentSlide ? "#ffcc00" : "#555" }}
                   onClick={() => setCurrentSlide(i)}
                 />
               ))}
@@ -264,6 +244,7 @@ export default function MainPage() {
         </div>
       </section>
 
+    
       <section style={s.catalogSection} ref={catalogRef}>
         <div style={s.catalog}>
           <h3 style={s.catalogTitle}>Каталог</h3>
@@ -277,12 +258,21 @@ export default function MainPage() {
         </div>
       </section>
 
+     
       {showCallbackModal && (
         <div style={s.modalOverlay} onClick={() => !callbackLoading && setShowCallbackModal(false)}>
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
             <h2 style={s.modalTitle}>Обратный звонок</h2>
-            <p style={s.modalText}>Введите ваш номер телефона, и мы вам перезвоним</p>
+            <p style={s.modalText}>Введите ваше имя и номер телефона, и мы вам перезвоним</p>
 
+            <input
+              type="text"
+              value={callbackName}
+              onChange={handleCallbackNameChange}
+              style={s.modalInput}
+              placeholder="Имя"
+              disabled={callbackLoading}
+            />
             <input
               type="tel"
               value={callbackPhone}
@@ -292,37 +282,19 @@ export default function MainPage() {
               disabled={callbackLoading}
             />
 
-            {callbackError && (
-              <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{callbackError}</div>
-            )}
-            {callbackSuccess && (
-              <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{callbackSuccess}</div>
-            )}
+            {callbackError && <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{callbackError}</div>}
+            {callbackSuccess && <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{callbackSuccess}</div>}
 
             <div style={s.modalButtons}>
-              <button
-                style={s.modalSubmitBtn}
-                onClick={handleCallbackSubmit}
-                disabled={callbackLoading}
-              >
+              <button style={s.modalSubmitBtn} onClick={handleCallbackSubmit} disabled={callbackLoading}>
                 {callbackLoading ? "Отправка..." : "Отправить"}
               </button>
-              <button
-                style={s.modalCancelBtn}
-                onClick={() => setShowCallbackModal(false)}
-                disabled={callbackLoading}
-              >
+              <button style={s.modalCancelBtn} onClick={() => setShowCallbackModal(false)} disabled={callbackLoading}>
                 Отмена
               </button>
             </div>
 
-            <button
-              style={s.modalClose}
-              onClick={() => setShowCallbackModal(false)}
-              disabled={callbackLoading}
-            >
-              ×
-            </button>
+            <button style={s.modalClose} onClick={() => setShowCallbackModal(false)} disabled={callbackLoading}>×</button>
           </div>
         </div>
       )}
@@ -355,11 +327,11 @@ export const styles = (mobile) => ({
   buttons: { display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "center", gap: "10px", marginBottom: "30px" },
   button: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "10px 14px" : "8px 16px", borderRadius: "6px", cursor: "pointer", fontSize: mobile ? "14px" : "16px", fontWeight: "bold" },
   photoBanner: { position: "relative", width: "100%", height: mobile ? "200px" : "600px", backgroundColor: "#444", borderRadius: "10px", overflow: "hidden" },
-  sliderImage: { width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px", transition: "opacity 0.5s ease-in-out" },
+  sliderImage: { width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px", transition: "opacity 0.5s" },
   navButtonLeft: { position: "absolute", top: "50%", left: "10px", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.4)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", cursor: "pointer", fontSize: "20px" },
   navButtonRight: { position: "absolute", top: "50%", right: "10px", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.4)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", cursor: "pointer", fontSize: "20px" },
   dots: { position: "absolute", bottom: "15px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px" },
-  dot: { width: "12px", height: "12px", borderRadius: "50%", cursor: "pointer", transition: "background-color 0.3s ease" },
+  dot: { width: "12px", height: "12px", borderRadius: "50%", cursor: "pointer", transition: "background-color 0.3s" },
   catalogSection: { display: "flex", justifyContent: "center", width: "100%", marginBottom: "60px" },
   catalog: { width: "1200px", maxWidth: "95%" },
   catalogTitle: { fontSize: "28px", marginBottom: "20px", textAlign: "left" },

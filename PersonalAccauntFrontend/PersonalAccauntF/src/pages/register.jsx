@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { styles } from "./MainPage"; // используем тот же файл стилей
+import { styles } from "./MainPage"; 
 
 const url = location.origin;
 
