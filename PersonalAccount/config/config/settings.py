@@ -63,7 +63,7 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
     'update-storage-every-10-min': {
-        'task': 'storage.tasks.fetch_and_update_sыtorage',
+        'task': 'storage.tasks.fetch_and_update_storage',
         'schedule': crontab(minute='*/10'),
     },
     'delete_user': {
