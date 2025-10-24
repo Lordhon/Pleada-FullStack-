@@ -171,8 +171,10 @@ class MeApiView(APIView):
     permission_classes = [IsAuthenticated]
     def get (self ,request):
         user = request.user
+        phone = str(user.phone_number)
+
         company = user.userprofile.company
-        return Response({'company':company})
+        return Response({'company':company , 'inn':user.inn , 'phone':phone})
     
 
 class CallBack(APIView):

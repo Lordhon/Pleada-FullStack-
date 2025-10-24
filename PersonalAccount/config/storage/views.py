@@ -75,7 +75,8 @@ class Order(APIView):
             code = generate_token(phone)
             cache.set(f"phone:code:{phone}", code, timeout=settings.REDIS_TTL)
             payload = {
-                "messages": [{"recipient": str(phone), "text": f"Код для подтверждения номера телефона: {code} на сайте https://zpnn.ru/ "}]
+                #"messages": [{"recipient": str(phone), "text": f"Код для подтверждения номера телефона: {code} на сайте https://zpnn.ru/ "}]
+                "messages": [{"recipient": str(phone), "text": f"{code}  "}]
                 
             }
             headers = {"X-Token": token, "Content-Type": "application/json"}
@@ -113,7 +114,7 @@ class OrderLine(APIView):
     
     def post(self,request):
         data = request.data 
-        logger.info(data)
+        
         try:
             obj_param = json.dumps(data)
             url = f"https://parus.ohelp.ru/api_lk?f=newapp&obj={obj_param}"
@@ -121,7 +122,9 @@ class OrderLine(APIView):
                 "Content-Type": "application/json",
                 "KEY": getkey()
             }
+            logger.info(obj_param)
             response = requests.get(url,headers=headers)
+            logger.info(response.json())
             return Response(response.text or "", status=response.status_code)
         
         except Exception as e : 
