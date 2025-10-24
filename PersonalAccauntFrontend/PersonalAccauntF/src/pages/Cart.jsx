@@ -341,7 +341,7 @@ const handleQuickOrder = async () => {
         </div>
       </header>
 
-      {/* Cart */}
+      
       <div style={s.container}>
         <h1 style={s.title}>Ваша корзина</h1>
         {cartItems.length === 0 ? (

@@ -75,8 +75,8 @@ class Order(APIView):
             code = generate_token(phone)
             cache.set(f"phone:code:{phone}", code, timeout=settings.REDIS_TTL)
             payload = {
-                #"messages": [{"recipient": str(phone), "text": f"Код для подтверждения номера телефона: {code} на сайте https://zpnn.ru/ "}]
-                "messages": [{"recipient": str(phone), "text": f"{code}  "}]
+                "messages": [{"recipient": str(phone), "text": f"Код для подтверждения номера телефона: {code} на сайте https://zpnn.ru/ "}]
+                
                 
             }
             headers = {"X-Token": token, "Content-Type": "application/json"}
