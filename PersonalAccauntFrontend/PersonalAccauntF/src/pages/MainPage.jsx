@@ -29,6 +29,7 @@ export default function MainPage() {
     { src: "/volvo.jpg", url: "/catalog/volvo/" },
     { src: "/hidromek.png", url: "/catalog/hidromek/" },
   ];
+  console.log('Привет')
 
   const heroImages = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg", "/slide4.jpg"];
   const [currentSlide, setCurrentSlide] = useState(0);
