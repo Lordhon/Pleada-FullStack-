@@ -135,6 +135,7 @@ class SearchItem(APIView):
         q = request.query_params.get("q" , "").strip()
 
         item = StorageItem.objects.select_related("gr").filter(Q(name__icontains=q) | Q(art__icontains=q)).first()
+        logger.info(q)
 
         if not item:
             return Response({"error": "item not found"} , status=404)
