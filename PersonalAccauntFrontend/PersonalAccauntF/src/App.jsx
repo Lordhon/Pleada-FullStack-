@@ -7,6 +7,7 @@ import SecurityEndpoint from "./func/privateendpoint.jsx";
 import MainPage from "./pages/MainPage.jsx";
 import CatalogPage from "./pages/Catalog.jsx";
 import CartPage from "./pages/Cart.jsx";
+import OrderSuccess from "./pages/OrderSuccess.jsx";
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
                     <Route path="" element={<MainPage />} />
                     <Route path="/catalog/:slug" element={<CatalogPage />} />
                     <Route path="/cart" element={<CartPage />} />
+                    <Route path="/order-success" element={<OrderSuccess  />} />
                     <Route element={<SecurityEndpoint />}>
 
 

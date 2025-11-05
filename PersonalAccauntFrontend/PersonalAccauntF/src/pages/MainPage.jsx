@@ -8,9 +8,15 @@ export default function MainPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+ 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [callbackPhone, setCallbackPhone] = useState("+7");
   const [callbackName, setCallbackName] = useState("");
@@ -18,6 +24,7 @@ export default function MainPage() {
   const [callbackError, setCallbackError] = useState("");
   const [callbackSuccess, setCallbackSuccess] = useState("");
 
+ 
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
     { src: "/mst.jpg", url: "/catalog/mst/" },
@@ -28,18 +35,23 @@ export default function MainPage() {
     { src: "/bobcat.jpg", url: "/catalog/bobcat/" },
     { src: "/volvo.jpg", url: "/catalog/volvo/" },
     { src: "/hidromek.png", url: "/catalog/hidromek/" },
+    { src: "/mksm.jpg", url: "/catalog/mksm/" },
+    { src: "/locust.png", url: "/catalog/lokust/" },
+  
   ];
-  console.log('Привет')
 
+ 
   const heroImages = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg", "/slide4.jpg"];
   const [currentSlide, setCurrentSlide] = useState(0);
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
 
+ 
   useEffect(() => {
     const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
   }, []);
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -47,6 +59,7 @@ export default function MainPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+ 
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
@@ -54,6 +67,7 @@ export default function MainPage() {
     document.documentElement.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -85,10 +99,13 @@ export default function MainPage() {
 
   const scrollToCatalog = () => catalogRef.current.scrollIntoView({ behavior: "smooth" });
 
+ 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+
     try {
+     
       const res = await axios.get(`${window.location.origin}/api/search/?q=${encodeURIComponent(searchQuery)}`);
       if (res.data.art) {
         navigate(`/catalog/${res.data.company_slug}?highlight=${res.data.art}`);
@@ -104,23 +121,44 @@ export default function MainPage() {
     }
   };
 
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const res = await axios.get(`${window.location.origin}/api/search-help/?q=${encodeURIComponent(searchQuery)}`);
+        setSearchSuggestions(res.data);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error("Ошибка получения подсказок:", err);
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [searchQuery]);
+
+ 
   const formatPhone = (val) => {
     if (!val.startsWith("+7")) val = "+7";
     return "+7" + val.slice(2).replace(/\D/g, "");
   };
-
   const handleCallbackPhoneChange = (e) => {
     setCallbackPhone(formatPhone(e.target.value));
     setCallbackError("");
     setCallbackSuccess("");
   };
-
   const handleCallbackNameChange = (e) => {
     setCallbackName(e.target.value);
     setCallbackError("");
     setCallbackSuccess("");
   };
-
   const handleCallbackSubmit = async () => {
     setCallbackError("");
     setCallbackSuccess("");
@@ -138,7 +176,6 @@ export default function MainPage() {
 
     setCallbackLoading(true);
     try {
-      console.log(callbackName)
       await axios.post(`${window.location.origin}/api/callback/`, {
         name: callbackName,
         phone: callbackPhone,
@@ -181,6 +218,7 @@ export default function MainPage() {
           {!isMobile && (
             <div style={s.phoneSection}>
               +7 930 665-32-71
+               <div>zakaz@zpnn.ru</div>
               <span style={s.phoneSub}>для связи по вопросам и заказам</span>
             </div>
           )}
@@ -195,13 +233,12 @@ export default function MainPage() {
           )}
 
           <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-          {/*<button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>*/}
         </div>
       </header>
 
-      
+     
       <div style={s.searchContainer}>
-        <form onSubmit={handleSearch} style={{ display: "flex", width: "100%", maxWidth: "400px", flexDirection: "column" }}>
+        <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", width: "100%", maxWidth: "400px" }}>
           <div style={{ display: "flex", width: "100%" }}>
             <input
               type="text"
@@ -209,16 +246,38 @@ export default function MainPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={s.searchInput}
+              onFocus={() => searchSuggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} 
             />
             <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>Найти</button>
           </div>
+
+          
           <div style={{ ...s.searchMessage, opacity: showMessage ? 1 : 0, transition: "opacity 0.5s" }}>
             {searchMessage}
           </div>
+
+         
+          {showSuggestions && searchSuggestions.length > 0 && (
+            <ul style={s.suggestionsList}>
+              {searchSuggestions.map((item) => (
+                <li
+                  key={item.art}
+                  style={s.suggestionItem}
+                  onMouseDown={() => {
+                    navigate(`/catalog/${item.company_slug}?highlight=${item.art}`);
+                    setShowSuggestions(false);
+                  }}
+                >
+                  {item.art} - {item.name} ({item.company_name})
+                </li>
+              ))}
+            </ul>
+          )}
         </form>
       </div>
 
-      
+    
       <section style={s.hero}>
         <div style={s.heroContent}>
           <h2 style={s.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
@@ -227,7 +286,6 @@ export default function MainPage() {
             <button style={s.button} onClick={scrollToCatalog}>Каталог</button>
             <button style={s.button} onClick={() => setShowCallbackModal(true)}>Обратный звонок</button>
           </div>
-
           <div style={s.photoBanner}>
             <img src={heroImages[currentSlide]} alt={`slide-${currentSlide}`} style={s.sliderImage} />
             <button style={s.navButtonLeft} onClick={prevSlide}>❮</button>
@@ -245,21 +303,21 @@ export default function MainPage() {
         </div>
       </section>
 
-    
+      
       <section style={s.catalogSection} ref={catalogRef}>
         <div style={s.catalog}>
           <h3 style={s.catalogTitle}>Каталог</h3>
           <div style={s.catalogGrid}>
             {catalogItems.map((item, index) => (
               <div key={index} style={s.catalogItem} onClick={() => navigate(item.url)}>
-                <img src={item.src} alt={`item-${index + 1}`} style={s.catalogImg} />
+                <img src={item.src} alt={`item-${index}`} style={s.catalogImg} />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-     
+    
       {showCallbackModal && (
         <div style={s.modalOverlay} onClick={() => !callbackLoading && setShowCallbackModal(false)}>
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
@@ -303,6 +361,7 @@ export default function MainPage() {
   );
 }
 
+
 export const styles = (mobile) => ({
   page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
   header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "10px", position: "relative" },
@@ -321,6 +380,8 @@ export const styles = (mobile) => ({
   searchContainer: { display: "flex", justifyContent: "center", padding: "15px 10px", backgroundColor: "#222" },
   searchInput: { width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "14px" },
   searchMessage: { color: "#ffcc00", marginTop: "5px", fontSize: "14px", textAlign: "center" },
+  suggestionsList: { listStyle: "none", padding: "5px", margin: "5px 0 0 0", backgroundColor: "#333", borderRadius: "5px", maxHeight: "200px", overflowY: "auto" },
+  suggestionItem: { padding: "8px", cursor: "pointer", borderBottom: "1px solid #444", color: "white" },
   hero: { textAlign: "center", marginBottom: "60px" },
   heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "30px 10px" : "60px 20px 40px", position: "relative" },
   heroTitle: { fontSize: mobile ? "24px" : "40px", marginBottom: "10px" },

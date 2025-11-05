@@ -1,22 +1,28 @@
+
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const url = location.origin;
 
+
 export default function CatalogPage() {
+ 
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const [items, setItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
-  const [cart, setCart] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const [user, setUser] = useState(null);
+  const [items, setItems] = useState([]); 
+  const [filteredItems, setFilteredItems] = useState([]); 
+  const [cart, setCart] = useState({}); 
+  const [loading, setLoading] = useState(true); 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [user, setUser] = useState(null); 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
 
   const priceChecks = {
     price: 500000,
@@ -25,7 +31,14 @@ export default function CatalogPage() {
     price3: 0,
   };
 
+
   const itemRefs = useRef({});
+
+ 
+  const searchWrapperRef = useRef(null);
+
+
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -33,27 +46,32 @@ export default function CatalogPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
 
+ 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     const verifyAndFetchUser = async () => {
       try {
+        
         await axios.get(`${url}/api/verify/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+       
         const res = await axios.get(`${url}/api/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
         setIsAuthenticated(true);
       } catch {
+        
         localStorage.removeItem("token");
         setUser(null);
         setIsAuthenticated(false);
@@ -61,15 +79,18 @@ export default function CatalogPage() {
     };
 
     verifyAndFetchUser();
+   
     const intervalId = setInterval(verifyAndFetchUser, 300000);
     return () => clearInterval(intervalId);
   }, []);
 
+  
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
+ 
   useEffect(() => {
     if (!slug) return;
     fetch(`${url}/api/catalog/${slug}/`)
@@ -81,6 +102,7 @@ export default function CatalogPage() {
         return res.json();
       })
       .then((data) => {
+      
         setItems(data);
         setFilteredItems(data);
       })
@@ -88,6 +110,7 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  
   useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredItems(
@@ -99,18 +122,38 @@ export default function CatalogPage() {
     );
   }, [searchQuery, items]);
 
+ 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const highlightArt = params.get("highlight");
-
     if (highlightArt && itemRefs.current[highlightArt]) {
-      itemRefs.current[highlightArt].scrollIntoView({ behavior: "smooth", block: "center" });
+      itemRefs.current[highlightArt].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       itemRefs.current[highlightArt].style.backgroundColor = "#008000";
       setTimeout(() => {
-        itemRefs.current[highlightArt].style.backgroundColor = "";
+        if (itemRefs.current[highlightArt]) {
+          itemRefs.current[highlightArt].style.backgroundColor = "";
+        }
       }, 2000);
     }
   }, [items]);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchWrapperRef.current &&
+        !searchWrapperRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   const addToCart = (item) => {
     setCart((prev) => {
@@ -122,6 +165,7 @@ export default function CatalogPage() {
     });
   };
 
+ 
   const updateQuantity = (art, newQuantity) => {
     if (!newQuantity) return;
     let quantity = parseInt(newQuantity);
@@ -136,6 +180,7 @@ export default function CatalogPage() {
     });
   };
 
+ 
   const removeFromCart = (art) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -145,7 +190,9 @@ export default function CatalogPage() {
     });
   };
 
+ 
   const isInCart = (art) => cart.hasOwnProperty(art);
+
 
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
@@ -177,12 +224,26 @@ export default function CatalogPage() {
     return { currentLevelKey: levelKey, nextLevelRemaining: nextRemaining };
   })();
 
+  
   const s = styles(isMobile);
+
+
+  const filteredSuggestions = searchQuery
+    ? items
+        .filter(
+          (item) =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.art.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .slice(0, 8) 
+    : [];
+
 
   if (loading) return <div style={s.loading}>Загрузка...</div>;
 
   return (
     <div style={s.page}>
+    
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.logoSection} onClick={() => navigate("/")}>
@@ -213,6 +274,7 @@ export default function CatalogPage() {
           {!isMobile && (
             <div style={s.phoneSection}>
               +7 930 665-32-71
+              <div>zakaz@zpnn.ru</div>
               <span style={s.phoneSub}>для связи по вопросам и заказам</span>
             </div>
           )}
@@ -240,17 +302,62 @@ export default function CatalogPage() {
         </div>
       </header>
 
+
       <div style={s.searchContainer}>
-        <input
-          type="text"
-          placeholder="Поиск по названию или артикулу..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={s.searchInput}
-        />
+       
+        <div
+          ref={searchWrapperRef}
+          style={{ position: "relative", width: "100%", maxWidth: "400px" }}
+        >
+          <input
+            type="text"
+            placeholder="Поиск по названию или артикулу..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(true); 
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            style={s.searchInput}
+          />
+
+          
+          {showSuggestions && searchQuery && filteredSuggestions.length > 0 && (
+            <div style={s.suggestionsBox}>
+              {filteredSuggestions.map((item) => (
+                <div
+                  key={item.art}
+                  style={s.suggestionItem}
+                  onMouseDown={(e) => {
+                   
+                    e.preventDefault(); 
+                    setSearchQuery(item.name); 
+                    setShowSuggestions(false); 
+                    
+                    const el = itemRefs.current[item.art];
+                    if (el) {
+                     
+                      setTimeout(() => {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        
+                        el.style.backgroundColor = "#008000";
+                        setTimeout(() => {
+                          if (el) el.style.backgroundColor = "";
+                        }, 900);
+                      }, 50);
+                    }
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", color: "#ffcc00" }}>{item.name}</div>
+                  <div style={{ fontSize: "13px" }}>{item.art}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-     
+      
       <section style={s.catalogSection}>
         <div style={s.catalogWrapper}>
           <h2 style={s.galeryTitle}>Категории</h2>
@@ -265,10 +372,17 @@ export default function CatalogPage() {
               { src: "/bobcat.jpg", url: "/catalog/bobcat/" },
               { src: "/volvo.jpg", url: "/catalog/volvo/" },
               { src: "/hidromek.png", url: "/catalog/hidromek/" },
+              { src: "/mksm.jpg", url: "/catalog/mksm/" },
+              { src: "/locust.png", url: "/catalog/lokust/" },
             ].map((item, index) => (
               <div
                 key={index}
-                style={{...s.catalogItem, cursor: "pointer", opacity: slug?.toLowerCase() === item.url.split("/")[2] ? 1 : 0.7}}
+                style={{
+                  ...s.catalogItem,
+                  cursor: "pointer",
+                  opacity:
+                    slug?.toLowerCase() === item.url.split("/")[2] ? 1 : 0.7,
+                }}
                 onClick={() => navigate(item.url)}
               >
                 <img src={item.src} alt={`category-${index}`} style={s.catalogImg} />
@@ -278,6 +392,7 @@ export default function CatalogPage() {
         </div>
       </section>
 
+      
       <section style={s.content}>
         <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
         <div style={s.tableContainer}>
@@ -311,6 +426,7 @@ export default function CatalogPage() {
                 filteredItems.map((item, index) => (
                   <tr
                     key={item.art}
+                    
                     ref={(el) => (itemRefs.current[item.art] = el)}
                     style={{
                       ...s.tableRow,
@@ -385,6 +501,7 @@ export default function CatalogPage() {
     </div>
   );
 }
+
 
 const styles = (mobile) => ({
   page: {
@@ -484,6 +601,29 @@ const styles = (mobile) => ({
     color: "white",
     fontSize: "14px",
   },
+
+  
+  suggestionsBox: {
+    position: "absolute",
+    top: "105%",
+    left: 0,
+    right: 0,
+    backgroundColor: "#2a2a2a",
+    border: "1px solid #444",
+    borderRadius: "6px",
+    maxHeight: "250px",
+    overflowY: "auto",
+    zIndex: 999,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.6)",
+  },
+  suggestionItem: {
+    padding: "8px 10px",
+    borderBottom: "1px solid #444",
+    cursor: "pointer",
+    color: "white",
+    transition: "background 0.12s",
+  },
+
   catalogSection: { 
     display: "flex", 
     justifyContent: "center", 

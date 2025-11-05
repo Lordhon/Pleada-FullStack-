@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 
-from storage.views import StorageView, Order , OrderLine, SearchItem
-from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack
+from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem
+from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,6 +17,10 @@ urlpatterns = [
     path('api/me/' , MeApiView.as_view()),
     path('api/search/' , SearchItem.as_view()),
     path('api/callback/' , CallBack.as_view()),
+    path('api/search-help/' , HelpSearchItem.as_view()),
+
+
+    
 
 
 

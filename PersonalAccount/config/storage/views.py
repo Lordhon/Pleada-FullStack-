@@ -26,9 +26,11 @@ def getkey():
 
 token = os.getenv('API_PHONE_SEND')
 logger = logging.getLogger(__name__)
-
+ALLOWED_COMPANIES = ["jcb", "terex", "komatsu " , "case" ,"caterpillar" , "mst" , "bobcat" , "volvo" , "hidromek" , "mksm"  , "lokust"]
 class StorageView(APIView):
     def get(self, request , slug):
+        if slug not in ALLOWED_COMPANIES: 
+            return Response({"error": "Нельзя"}, status=status.HTTP_403_FORBIDDEN)
         try :
             company = ItemCompany.objects.get(slug=slug)
         except ItemCompany.DoesNotExist:
@@ -125,7 +127,9 @@ class OrderLine(APIView):
             logger.info(obj_param)
             response = requests.get(url,headers=headers)
             logger.info(response.json())
-            return Response(response.text or "", status=response.status_code)
+            response_data = response.json()
+            idapp = response_data.get('idapp')
+            return Response({"idapp": idapp}, status=status.HTTP_200_OK)
         
         except Exception as e : 
             logger.error(e)
@@ -134,7 +138,7 @@ class SearchItem(APIView):
     def get(self , request):
         q = request.query_params.get("q" , "").strip()
 
-        item = StorageItem.objects.select_related("gr").filter(Q(name__icontains=q) | Q(art__icontains=q)).first()
+        item = StorageItem.objects.select_related("gr").filter(Q(name__icontains=q) | Q(art__icontains=q) , gr__slug__in=ALLOWED_COMPANIES).first()
         logger.info(q)
 
         if not item:
@@ -142,6 +146,15 @@ class SearchItem(APIView):
         serializer = SearchItemSerializer(item)
         return Response(serializer.data , status=200)
 
+class HelpSearchItem(APIView):
+    def get(self  , request ):
+        q = request.query_params.get("q" ,"").strip()
+        items = StorageItem.objects.filter(Q(art__icontains=q) | Q(name__icontains=q) ,  gr__slug__in=ALLOWED_COMPANIES)
+        if not items:
+            return Response({"error": "item not found"} , status=404)
+        serializer = SearchItemSerializer(items  , many=True)
+        return Response(serializer.data , status=200)
+        
         
         
 

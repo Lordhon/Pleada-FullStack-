@@ -136,89 +136,97 @@ export default function CartPage() {
     else handleAuthenticatedOrder();
   };
 
-const handleQuickOrder = async () => {
-  try {
-    setIsLoading(true);
-    setOrderMessage("");
+  const handleQuickOrder = async () => {
+    try {
+      setIsLoading(true);
+      setOrderMessage("");
 
-    const payload = awaitingCode
-      ? { phone: formatPhone(phone), code, cart }
-      : { phone: formatPhone(phone), cart };
+      const payload = awaitingCode
+        ? { phone: formatPhone(phone), code, cart }
+        : { phone: formatPhone(phone), cart };
 
-    const resOrder = await fetch(`${url}/api/order/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resOrder.ok) {
-      const text = await resOrder.text();
-      throw new Error(`Ошибка order: ${resOrder.status} ${text}`);
-    }
-
-    const data = await resOrder.json();
-
-    if (!awaitingCode && data.verification_required) {
-      setAwaitingCode(true);
-      setOrderMessage("Код подтверждения отправлен на телефон");
-      return;
-    }
-
-    // Если код введён и подтверждён — вызываем order-line
-    if (awaitingCode || isAuthenticated) {
-      const orderItems = cartItems.map((item) => ({
-        art: item.art,
-        name: item.name,
-        quantity: item.quantity,
-        price: dynamicPrices[item.art],
-      }));
-
-      const orderData = {
-        user: { phone: formatPhone(phone) },
-        items: orderItems,
-        totalSum: totalCartSum,
-        priceLevel: currentPriceLevel,
-        savings: totalSavings,
-        orderDate: new Date().toISOString(),
-      };
-
-      const resLine = await fetch(`${url}/api/order-line/`, {
+      const resOrder = await fetch(`${url}/api/order/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(payload),
       });
 
-      if (!resLine.ok) {
-        const text = await resLine.text();
-        throw new Error(`Ошибка order-line: ${resLine.status} ${text}`);
+      if (!resOrder.ok) {
+        const text = await resOrder.text();
+        throw new Error(`Ошибка order: ${resOrder.status} ${text}`);
       }
+
+      const data = await resOrder.json();
+
+      if (!awaitingCode && data.verification_required) {
+        setAwaitingCode(true);
+        setOrderMessage("Код подтверждения отправлен на телефон");
+        return;
+      }
+
+    
+      if (awaitingCode || isAuthenticated) {
+        const orderItems = cartItems.map((item) => ({
+          art: item.art,
+          name: item.name,
+          quantity: item.quantity,
+          price: dynamicPrices[item.art],
+        }));
+
+        const orderData = {
+          user: { phone: formatPhone(phone) },
+          items: orderItems,
+          totalSum: totalCartSum,
+          priceLevel: currentPriceLevel,
+          savings: totalSavings,
+          orderDate: new Date().toISOString(),
+        };
+
+        const resLine = await fetch(`${url}/api/order-line/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderData),
+        });
+
+        if (!resLine.ok) {
+          const text = await resLine.text();
+          throw new Error(`Ошибка order-line: ${resLine.status} ${text}`);
+        }
+
+       
+        const lineData = await resLine.json();
+        const orderNumber = lineData?.idapp || lineData?.id || "—";
+
+        localStorage.setItem(
+          "currentOrder",
+          JSON.stringify({ cart, totalCartSum, currentPriceLevel })
+        );
+
+        setShowQuickOrder(false);
+        setAwaitingCode(false);
+        setCart({});
+        localStorage.removeItem("cart");
+        setOrderMessage(`✅ Заказ оформлен!\nНомер заказа: ${orderNumber}`);
+        setPhone("+7");
+        setCode("");
+
+        
+        setTimeout(() => {
+          setOrderMessage("");
+        }, 5000);
+      }
+
+    } catch (err) {
+      console.error(err);
+      setOrderMessage(
+        awaitingCode
+          ? "✗ Неверный код подтверждения. Попробуйте еще раз"
+          : "✗ Не удалось оформить заказ"
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    localStorage.setItem(
-      "currentOrder",
-      JSON.stringify({ cart, totalCartSum, currentPriceLevel })
-    );
-
-    setShowQuickOrder(false);
-    setAwaitingCode(false);
-    setCart({});
-    localStorage.removeItem("cart");
-    setOrderMessage("✅ Заказ оформлен!");
-    setPhone("+7");
-    setCode("");
-
-  } catch (err) {
-    console.error(err);
-    setOrderMessage(
-      awaitingCode
-        ? "✗ Неверный код подтверждения. Попробуйте еще раз"
-        : "✗ Не удалось оформить заказ"
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   const handleAuthenticatedOrder = async () => {
     try {
@@ -247,7 +255,7 @@ const handleQuickOrder = async () => {
         orderDate: new Date().toISOString(),
       };
 
-      await fetch(`${url}/api/order-line/`, {
+      const resLine = await fetch(`${url}/api/order-line/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -255,6 +263,15 @@ const handleQuickOrder = async () => {
         },
         body: JSON.stringify(orderData),
       });
+
+      if (!resLine.ok) {
+        const text = await resLine.text();
+        throw new Error(`Ошибка order-line: ${resLine.status} ${text}`);
+      }
+
+      
+      const lineData = await resLine.json();
+      const orderNumber = lineData?.idapp || lineData?.id || "—";
 
       const resz = await fetch(`${url}/api/order/`, {
         method: "POST",
@@ -275,14 +292,23 @@ const handleQuickOrder = async () => {
         throw new Error(`Ошибка запроса: ${resz.status} ${text}`);
       }
 
-      const data = await resz.json();
+     
       localStorage.setItem(
-        "currentOrder",
-        JSON.stringify({ cart, totalCartSum, currentPriceLevel })
+        "orderSuccess",
+        JSON.stringify({
+          orderNumber,
+          totalSum: totalCartSum,
+          priceLevel: currentPriceLevel,
+          savings: totalSavings,
+        })
       );
+
       setCart({});
       localStorage.removeItem("cart");
-      setOrderMessage(`✅ Заказ оформлен! ID: ${data.order_id || data.id || "—"}`);
+
+    
+      navigate("/order-success");
+
     } catch (err) {
       console.error(err);
       setOrderMessage("Не удалось оформить заказ. Попробуйте еще раз.");
@@ -323,6 +349,7 @@ const handleQuickOrder = async () => {
           {!isMobile && (
             <div style={s.phoneSection}>
               +7 930 665-32-71
+              <div>zakaz@zpnn.ru</div>
               <span style={s.phoneSub}>для связи по вопросам и заказам</span>
             </div>
           )}
