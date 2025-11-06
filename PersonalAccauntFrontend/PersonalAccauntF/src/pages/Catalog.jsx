@@ -1,28 +1,31 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-
 const url = location.origin;
 
-
 export default function CatalogPage() {
- 
   const { slug } = useParams();
   const navigate = useNavigate();
 
-
-  const [items, setItems] = useState([]); 
-  const [filteredItems, setFilteredItems] = useState([]); 
-  const [cart, setCart] = useState({}); 
-  const [loading, setLoading] = useState(true); 
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [cart, setCart] = useState({});
+  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const productPhotos = [
+    "/qw.png",
+    "/w.png",
+    "/e.png",
+    "/r.png",
+    "/u.png",
+    "/y.png",
+  ];
 
   const priceChecks = {
     price: 500000,
@@ -31,14 +34,8 @@ export default function CatalogPage() {
     price3: 0,
   };
 
-
   const itemRefs = useRef({});
-
- 
   const searchWrapperRef = useRef(null);
-
-
-
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -46,32 +43,27 @@ export default function CatalogPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
 
- 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     const verifyAndFetchUser = async () => {
       try {
-        
         await axios.get(`${url}/api/verify/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-       
         const res = await axios.get(`${url}/api/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
         setIsAuthenticated(true);
       } catch {
-        
         localStorage.removeItem("token");
         setUser(null);
         setIsAuthenticated(false);
@@ -79,18 +71,15 @@ export default function CatalogPage() {
     };
 
     verifyAndFetchUser();
-   
     const intervalId = setInterval(verifyAndFetchUser, 300000);
     return () => clearInterval(intervalId);
   }, []);
 
-  
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
- 
   useEffect(() => {
     if (!slug) return;
     fetch(`${url}/api/catalog/${slug}/`)
@@ -102,7 +91,6 @@ export default function CatalogPage() {
         return res.json();
       })
       .then((data) => {
-      
         setItems(data);
         setFilteredItems(data);
       })
@@ -110,7 +98,6 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  
   useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredItems(
@@ -122,7 +109,6 @@ export default function CatalogPage() {
     );
   }, [searchQuery, items]);
 
- 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const highlightArt = params.get("highlight");
@@ -140,7 +126,6 @@ export default function CatalogPage() {
     }
   }, [items]);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -154,7 +139,6 @@ export default function CatalogPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
   const addToCart = (item) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -165,7 +149,6 @@ export default function CatalogPage() {
     });
   };
 
- 
   const updateQuantity = (art, newQuantity) => {
     if (!newQuantity) return;
     let quantity = parseInt(newQuantity);
@@ -180,7 +163,6 @@ export default function CatalogPage() {
     });
   };
 
- 
   const removeFromCart = (art) => {
     setCart((prev) => {
       const updated = { ...prev };
@@ -190,9 +172,7 @@ export default function CatalogPage() {
     });
   };
 
- 
   const isInCart = (art) => cart.hasOwnProperty(art);
-
 
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
@@ -224,9 +204,7 @@ export default function CatalogPage() {
     return { currentLevelKey: levelKey, nextLevelRemaining: nextRemaining };
   })();
 
-  
   const s = styles(isMobile);
-
 
   const filteredSuggestions = searchQuery
     ? items
@@ -235,15 +213,13 @@ export default function CatalogPage() {
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.art.toLowerCase().includes(searchQuery.toLowerCase())
         )
-        .slice(0, 8) 
+        .slice(0, 8)
     : [];
-
 
   if (loading) return <div style={s.loading}>Загрузка...</div>;
 
   return (
     <div style={s.page}>
-    
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.logoSection} onClick={() => navigate("/")}>
@@ -271,11 +247,18 @@ export default function CatalogPage() {
         )}
 
         <div style={s.headerRight}>
+         
           {!isMobile && (
             <div style={s.phoneSection}>
-              +7 930 665-32-71
-              <div>zakaz@zpnn.ru</div>
-              <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              <a href="/qwwerwer" style={s.headerPhotoLink}>
+                <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
+              </a>
+              
+              <div style={s.phoneContent}>
+                <div>+7 930 665-32-71</div>
+                <div>zakaz@zpnn.ru</div>
+                <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              </div>
             </div>
           )}
 
@@ -296,15 +279,19 @@ export default function CatalogPage() {
             Корзина
           </button>
 
-          <button style={s.navButton} onClick={() => navigate("/")}>
-            Каталог
-          </button>
+          {isMobile && (
+            <div style={s.mobileContactBlock}>
+              <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
+              </a>
+              <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
+              <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
+            </div>
+          )}
         </div>
       </header>
 
-
       <div style={s.searchContainer}>
-       
         <div
           ref={searchWrapperRef}
           style={{ position: "relative", width: "100%", maxWidth: "400px" }}
@@ -315,13 +302,12 @@ export default function CatalogPage() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setShowSuggestions(true); 
+              setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
             style={s.searchInput}
           />
 
-          
           {showSuggestions && searchQuery && filteredSuggestions.length > 0 && (
             <div style={s.suggestionsBox}>
               {filteredSuggestions.map((item) => (
@@ -329,17 +315,15 @@ export default function CatalogPage() {
                   key={item.art}
                   style={s.suggestionItem}
                   onMouseDown={(e) => {
-                   
-                    e.preventDefault(); 
-                    setSearchQuery(item.name); 
-                    setShowSuggestions(false); 
-                    
+                    e.preventDefault();
+                    setSearchQuery(item.name);
+                    setShowSuggestions(false);
+
                     const el = itemRefs.current[item.art];
                     if (el) {
-                     
                       setTimeout(() => {
                         el.scrollIntoView({ behavior: "smooth", block: "center" });
-                        
+
                         el.style.backgroundColor = "#008000";
                         setTimeout(() => {
                           if (el) el.style.backgroundColor = "";
@@ -357,7 +341,6 @@ export default function CatalogPage() {
         </div>
       </div>
 
-      
       <section style={s.catalogSection}>
         <div style={s.catalogWrapper}>
           <h2 style={s.galeryTitle}>Категории</h2>
@@ -392,7 +375,6 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      
       <section style={s.content}>
         <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
         <div style={s.tableContainer}>
@@ -426,7 +408,6 @@ export default function CatalogPage() {
                 filteredItems.map((item, index) => (
                   <tr
                     key={item.art}
-                    
                     ref={(el) => (itemRefs.current[item.art] = el)}
                     style={{
                       ...s.tableRow,
@@ -498,10 +479,18 @@ export default function CatalogPage() {
           </table>
         </div>
       </section>
+
+      {/* НОВАЯ СЕКЦИЯ С ФОТКАМИ */}
+      <section style={s.productsSection}>
+        <div style={s.productsGallery}>
+          {productPhotos.map((photo, index) => (
+            <img key={index} src={photo} alt={`product-${index}`} style={s.productPhoto} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
-
 
 const styles = (mobile) => ({
   page: {
@@ -529,11 +518,29 @@ const styles = (mobile) => ({
     alignItems: "center",
     gap: "15px",
     flexWrap: "wrap",
+    flexDirection: mobile ? "column" : "row",
+    width: mobile ? "100%" : "auto",
   },
-  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
-  logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
-  logoText: { display: "flex", flexDirection: "column" },
-  logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
+  logoSection: {
+    display: "flex",
+    alignItems: "center",
+    gap: mobile ? "10px" : "15px",
+    cursor: "pointer",
+  },
+  logoImage: {
+    width: mobile ? "100px" : "150px",
+    height: "auto",
+    objectFit: "contain",
+  },
+  logoText: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  logoTitle: {
+    margin: 0,
+    color: "#ffcc00",
+    fontSize: mobile ? "22px" : "30px",
+  },
   promoButton: {
     backgroundColor: "#ffcc00",
     border: "none",
@@ -564,15 +571,51 @@ const styles = (mobile) => ({
   },
   phoneSection: {
     display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
+    alignItems: "center",
+    gap: "10px",
     color: "white",
     fontSize: "14px",
+  },
+  phoneContent: {
+    display: "flex",
+    flexDirection: "column",
+    lineHeight: 1.2,
   },
   phoneSub: {
     color: "#ccc",
     fontSize: "12px",
     marginTop: "2px",
+  },
+  mobileContactBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "8px",
+    width: "100%",
+    paddingTop: "12px",
+    borderTop: "1px solid #444",
+    justifyContent: "center",
+  },
+  mobileTelegramLink: {
+    display: "flex",
+    textDecoration: "none",
+  },
+  mobileTelegramIcon: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    objectFit: "cover",
+  },
+  mobilePhoneText: {
+    color: "#ffcc00",
+    fontWeight: "bold",
+    fontSize: "14px",
+    textAlign: "center",
+  },
+  mobileEmailText: {
+    color: "#ccc",
+    fontSize: "12px",
+    textAlign: "center",
   },
   navButton: {
     backgroundColor: "#ffcc00",
@@ -601,8 +644,6 @@ const styles = (mobile) => ({
     color: "white",
     fontSize: "14px",
   },
-
-  
   suggestionsBox: {
     position: "absolute",
     top: "105%",
@@ -623,15 +664,14 @@ const styles = (mobile) => ({
     color: "white",
     transition: "background 0.12s",
   },
-
-  catalogSection: { 
-    display: "flex", 
-    justifyContent: "center", 
-    width: "100%", 
+  catalogSection: {
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
     padding: mobile ? "20px 10px" : "30px 20px",
     backgroundColor: "#1c1c1c",
   },
-  catalogWrapper: { 
+  catalogWrapper: {
     width: "100%",
     maxWidth: "1400px",
   },
@@ -643,23 +683,23 @@ const styles = (mobile) => ({
     fontWeight: "bold",
     margin: "0 0 15px 0",
   },
-  catalogGrid: { 
-    display: "grid", 
-    gridTemplateColumns: mobile ? "repeat(auto-fit, minmax(120px, 1fr))" : "repeat(auto-fit, minmax(180px, 1fr))", 
+  catalogGrid: {
+    display: "grid",
+    gridTemplateColumns: mobile ? "repeat(auto-fit, minmax(120px, 1fr))" : "repeat(auto-fit, minmax(180px, 1fr))",
     gap: mobile ? "10px" : "15px",
   },
-  catalogItem: { 
-    backgroundColor: "#2a2a2a", 
-    borderRadius: "8px", 
-    overflow: "hidden", 
+  catalogItem: {
+    backgroundColor: "#2a2a2a",
+    borderRadius: "8px",
+    overflow: "hidden",
     aspectRatio: "16/9",
     transition: "transform 0.2s, opacity 0.2s",
   },
-  catalogImg: { 
-    width: "100%", 
-    height: "100%", 
-    objectFit: "cover", 
-    display: "block", 
+  catalogImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
     borderRadius: "8px",
   },
   title: {
@@ -668,24 +708,26 @@ const styles = (mobile) => ({
     color: "#ffcc00",
     textAlign: "left",
   },
-  content: { 
-    padding: mobile ? "15px 10px" : "30px 20px", 
-    maxWidth: "1400px", 
+  content: {
+    padding: mobile ? "15px 10px" : "30px 20px",
+    maxWidth: "1400px",
     margin: "0 auto",
   },
-  tableContainer: { 
-    overflowX: "auto", 
-    borderRadius: "10px", 
+  tableContainer: {
+    overflowX: "auto",
+    borderRadius: "10px",
     border: "1px solid #444",
     boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
   },
-  table: { 
-    width: "100%", 
-    borderCollapse: "collapse", 
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
     backgroundColor: "#2a2a2a",
     fontSize: mobile ? "11px" : "13px",
   },
-  tableHeaderRow: { backgroundColor: "#ffcc00" },
+  tableHeaderRow: {
+    backgroundColor: "#ffcc00",
+  },
   tableHeader: {
     padding: mobile ? "12px 8px" : "15px 12px",
     textAlign: "left",
@@ -699,20 +741,20 @@ const styles = (mobile) => ({
     fontWeight: "bold",
     marginBottom: "3px",
   },
-  priceSubText: { 
-    fontSize: mobile ? "10px" : "11px", 
-    fontWeight: "normal", 
+  priceSubText: {
+    fontSize: mobile ? "10px" : "11px",
+    fontWeight: "normal",
     color: "#333",
     marginTop: "2px",
   },
-  tableRow: { 
+  tableRow: {
     borderBottom: "1px solid #444",
     transition: "background-color 0.2s",
   },
-  tableCell: { 
-    padding: mobile ? "8px 6px" : "12px 10px", 
-    borderRight: "1px solid #444", 
-    color: "#eee", 
+  tableCell: {
+    padding: mobile ? "8px 6px" : "12px 10px",
+    borderRight: "1px solid #444",
+    color: "#eee",
     wordBreak: "break-word",
   },
   nextLevelHint: {
@@ -721,66 +763,100 @@ const styles = (mobile) => ({
     marginTop: "2px",
     fontWeight: "bold",
   },
-  actionCell: { 
-    padding: mobile ? "8px 4px" : "12px 8px", 
-    borderRight: "1px solid #444", 
+  actionCell: {
+    padding: mobile ? "8px 4px" : "12px 8px",
+    borderRight: "1px solid #444",
     minWidth: mobile ? "70px" : "90px",
   },
-  noDataCell: { 
-    padding: "30px", 
-    textAlign: "center", 
+  noDataCell: {
+    padding: "30px",
+    textAlign: "center",
     color: "#aaa",
     fontSize: "16px",
   },
-  loading: { 
-    display: "flex", 
-    justifyContent: "center", 
-    alignItems: "center", 
-    height: "100vh", 
+  loading: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
     color: "#ffcc00",
     fontSize: "18px",
   },
-  addButton: { 
-    backgroundColor: "#ffcc00", 
-    border: "none", 
-    padding: mobile ? "6px 8px" : "8px 12px", 
-    borderRadius: "4px", 
-    cursor: "pointer", 
-    fontWeight: "bold", 
-    color: "#1c1c1c", 
-    width: "100%", 
+  addButton: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: mobile ? "6px 8px" : "8px 12px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
+    width: "100%",
     transition: "all 0.2s",
     fontSize: mobile ? "11px" : "12px",
   },
-  quantityContainer: { 
-    display: "flex", 
-    alignItems: "center", 
-    gap: "4px", 
+  quantityContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
     justifyContent: "space-between",
   },
-  quantityInput: { 
+  quantityInput: {
     flex: 1,
-    padding: "4px", 
-    borderRadius: "3px", 
-    border: "1px solid #555", 
-    backgroundColor: "#1c1c1c", 
-    color: "white", 
+    padding: "4px",
+    borderRadius: "3px",
+    border: "1px solid #555",
+    backgroundColor: "#1c1c1c",
+    color: "white",
     textAlign: "center",
     fontSize: "12px",
   },
-  removeButton: { 
-    backgroundColor: "#ff4444", 
-    border: "none", 
-    borderRadius: "3px", 
-    cursor: "pointer", 
-    fontWeight: "bold", 
-    color: "white", 
-    display: "flex", 
-    alignItems: "center", 
-    justifyContent: "center", 
+  removeButton: {
+    backgroundColor: "#ff4444",
+    border: "none",
+    borderRadius: "3px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     transition: "background-color 0.2s",
     width: mobile ? "24px" : "30px",
     height: mobile ? "24px" : "30px",
     fontSize: mobile ? "16px" : "18px",
+  },
+  productsSection: {
+    display: "flex",
+    justifyContent: "center",
+    padding: "60px 20px",
+    backgroundColor: "#1c1c1c",
+    width: "100%",
+  },
+  productsGallery: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: mobile ? "15px" : "25px",
+    maxWidth: "1400px",
+  },
+  productPhoto: {
+    width: mobile ? "120px" : "200px",
+    height: mobile ? "120px" : "200px",
+    objectFit: "cover",
+    borderRadius: "8px",
+  },
+  headerPhotoLink: {
+    display: "flex",
+    alignItems: "center",
+    textDecoration: "none",
+  },
+  headerPhoto: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    cursor: "pointer",
+    transition: "transform 0.2s",
   },
 });

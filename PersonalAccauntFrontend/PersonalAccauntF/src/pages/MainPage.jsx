@@ -9,14 +9,12 @@ export default function MainPage() {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
- 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [callbackPhone, setCallbackPhone] = useState("+7");
   const [callbackName, setCallbackName] = useState("");
@@ -24,7 +22,6 @@ export default function MainPage() {
   const [callbackError, setCallbackError] = useState("");
   const [callbackSuccess, setCallbackSuccess] = useState("");
 
- 
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
     { src: "/mst.jpg", url: "/catalog/mst/" },
@@ -37,21 +34,26 @@ export default function MainPage() {
     { src: "/hidromek.png", url: "/catalog/hidromek/" },
     { src: "/mksm.jpg", url: "/catalog/mksm/" },
     { src: "/locust.png", url: "/catalog/lokust/" },
-  
   ];
 
- 
+  const productPhotos = [
+    "/qw.png",
+    "/w.png",
+    "/e.png",
+    "/r.png",
+    "/u.png",
+    "/y.png",
+  ];
+
   const heroImages = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg", "/slide4.jpg"];
   const [currentSlide, setCurrentSlide] = useState(0);
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
 
- 
   useEffect(() => {
     const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
   }, []);
-
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -59,7 +61,6 @@ export default function MainPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
- 
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
@@ -67,7 +68,6 @@ export default function MainPage() {
     document.documentElement.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
-
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -99,13 +99,11 @@ export default function MainPage() {
 
   const scrollToCatalog = () => catalogRef.current.scrollIntoView({ behavior: "smooth" });
 
- 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     try {
-     
       const res = await axios.get(`${window.location.origin}/api/search/?q=${encodeURIComponent(searchQuery)}`);
       if (res.data.art) {
         navigate(`/catalog/${res.data.company_slug}?highlight=${res.data.art}`);
@@ -120,7 +118,6 @@ export default function MainPage() {
       setTimeout(() => setShowMessage(false), 5000);
     }
   };
-
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -144,21 +141,23 @@ export default function MainPage() {
     fetchSuggestions();
   }, [searchQuery]);
 
- 
   const formatPhone = (val) => {
     if (!val.startsWith("+7")) val = "+7";
     return "+7" + val.slice(2).replace(/\D/g, "");
   };
+
   const handleCallbackPhoneChange = (e) => {
     setCallbackPhone(formatPhone(e.target.value));
     setCallbackError("");
     setCallbackSuccess("");
   };
+
   const handleCallbackNameChange = (e) => {
     setCallbackName(e.target.value);
     setCallbackError("");
     setCallbackSuccess("");
   };
+
   const handleCallbackSubmit = async () => {
     setCallbackError("");
     setCallbackSuccess("");
@@ -194,7 +193,6 @@ export default function MainPage() {
 
   return (
     <div style={s.page}>
-      
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.logoSection} onClick={() => navigate("/")}>
@@ -215,11 +213,18 @@ export default function MainPage() {
         )}
 
         <div style={s.headerRight}>
+         
           {!isMobile && (
             <div style={s.phoneSection}>
-              +7 930 665-32-71
-               <div>zakaz@zpnn.ru</div>
-              <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              <a href="/qwwerwer" style={s.headerPhotoLink}>
+                <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
+              </a>
+              
+              <div style={s.phoneContent}>
+                <div>+7 930 665-32-71</div>
+                <div>zakaz@zpnn.ru</div>
+                <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              </div>
             </div>
           )}
 
@@ -233,10 +238,22 @@ export default function MainPage() {
           )}
 
           <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+
+          
+          {isMobile && (
+            <div style={s.mobileContactBlock}>
+              <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
+              </a>
+              <div style={s.mobileContactsContainer}>
+                <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
+                <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-     
       <div style={s.searchContainer}>
         <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", width: "100%", maxWidth: "400px" }}>
           <div style={{ display: "flex", width: "100%" }}>
@@ -247,17 +264,15 @@ export default function MainPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={s.searchInput}
               onFocus={() => searchSuggestions.length > 0 && setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} 
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             />
             <button type="submit" style={{ ...s.promoButton, marginLeft: "5px" }}>Найти</button>
           </div>
 
-          
           <div style={{ ...s.searchMessage, opacity: showMessage ? 1 : 0, transition: "opacity 0.5s" }}>
             {searchMessage}
           </div>
 
-         
           {showSuggestions && searchSuggestions.length > 0 && (
             <ul style={s.suggestionsList}>
               {searchSuggestions.map((item) => (
@@ -277,7 +292,6 @@ export default function MainPage() {
         </form>
       </div>
 
-    
       <section style={s.hero}>
         <div style={s.heroContent}>
           <h2 style={s.heroTitle}>ЗАПЧАСТИ ДЛЯ СПЕЦТЕХНИКИ</h2>
@@ -303,7 +317,6 @@ export default function MainPage() {
         </div>
       </section>
 
-      
       <section style={s.catalogSection} ref={catalogRef}>
         <div style={s.catalog}>
           <h3 style={s.catalogTitle}>Каталог</h3>
@@ -317,7 +330,14 @@ export default function MainPage() {
         </div>
       </section>
 
-    
+      <section style={s.productsSection}>
+        <div style={s.productsGallery}>
+          {productPhotos.map((photo, index) => (
+            <img key={index} src={photo} alt={`product-${index}`} style={s.productPhoto} />
+          ))}
+        </div>
+      </section>
+
       {showCallbackModal && (
         <div style={s.modalOverlay} onClick={() => !callbackLoading && setShowCallbackModal(false)}>
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
@@ -361,7 +381,6 @@ export default function MainPage() {
   );
 }
 
-
 export const styles = (mobile) => ({
   page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
   header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "10px", position: "relative" },
@@ -370,11 +389,24 @@ export const styles = (mobile) => ({
   logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
   logoText: { display: "flex", flexDirection: "column" },
   logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
-  headerRight: { display: "flex", alignItems: "center", gap: "20px" },
-  phoneSection: { display: "flex", flexDirection: "column", alignItems: "flex-end", color: "white", fontSize: "14px" },
+  headerRight: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "20px", flexWrap: "wrap", justifyContent: "center" },
+  
+ 
+  phoneSection: { display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", color: "white", fontSize: "14px" },
+  phoneContent: { display: "flex", flexDirection: "column", alignItems: "flex-end" },
   phoneSub: { color: "#ccc", fontSize: "12px" },
+ 
+  mobileContactBlock: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "100%", marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #444" },
+  mobileTelegramLink: { display: "flex", textDecoration: "none" },
+  mobileTelegramIcon: { width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" },
+  mobileContactsContainer: { display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" },
+  mobilePhoneText: { color: "#ffcc00", fontWeight: "bold", fontSize: "13px" },
+  mobileEmailText: { color: "#ccc", fontSize: "11px" },
+  
+  headerPhotoLink: { display: "flex", textDecoration: "none" },
+  headerPhoto: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", transition: "transform 0.2s" },
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
-  navButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap" },
+  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
   searchContainer: { display: "flex", justifyContent: "center", padding: "15px 10px", backgroundColor: "#222" },
@@ -400,6 +432,9 @@ export const styles = (mobile) => ({
   catalogGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" },
   catalogItem: { backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", cursor: "pointer", aspectRatio: "16/9" },
   catalogImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "10px" },
+  productsSection: { display: "flex", justifyContent: "center", padding: "60px 20px", backgroundColor: "#1c1c1c", width: "100%" },
+  productsGallery: { display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: mobile ? "15px" : "25px", maxWidth: "1400px" },
+  productPhoto: { width: mobile ? "120px" : "200px", height: mobile ? "120px" : "200px", objectFit: "cover", borderRadius: "8px" },
   modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
   modal: { backgroundColor: "#2a2a2a", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "400px", width: "90%", position: "relative" },
   modalTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },

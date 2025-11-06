@@ -348,9 +348,14 @@ export default function CartPage() {
         <div style={s.headerRight}>
           {!isMobile && (
             <div style={s.phoneSection}>
-              +7 930 665-32-71
-              <div>zakaz@zpnn.ru</div>
-              <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              <a href="/qwwerwer" style={s.headerPhotoLink}>
+                <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
+              </a>
+              <div style={s.phoneContent}>
+                <div>+7 930 665-32-71</div>
+                <div>zakaz@zpnn.ru</div>
+                <span style={s.phoneSub}>для связи по вопросам и заказам</span>
+              </div>
             </div>
           )}
           <nav style={s.nav}>
@@ -365,6 +370,16 @@ export default function CartPage() {
             <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
             <button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>
           </nav>
+
+          {isMobile && (
+            <div style={s.mobileContactBlock}>
+              <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
+              </a>
+              <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
+              <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -518,40 +533,315 @@ const styles = (mobile) => ({
     gap: "10px",
     position: "relative",
   },
-  headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
-  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
-  logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
-  logoText: { display: "flex", flexDirection: "column" },
-  logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
-  promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap" },
-  headerRight: { display: "flex", alignItems: "center", gap: "20px" },
-  phoneSection: { display: "flex", flexDirection: "column", alignItems: "flex-end", color: "white", fontSize: "14px" },
-  phoneSub: { color: "#ccc", fontSize: "12px", marginTop: "2px" },
-  nav: { display: "flex", alignItems: "center", gap: "20px" },
-  navButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", fontSize: "14px", whiteSpace: "nowrap" },
-  profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
-  company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
-  container: { maxWidth: "1400px", margin: "0 auto", padding: "0 20px" },
-  title: { fontSize: "32px", margin: "40px 0 30px", color: "#ffcc00", fontWeight: "bold" },
-  empty: { fontSize: "18px", color: "#aaa", textAlign: "center", padding: "60px 20px" },
-  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#2a2a2a", color: "white", borderRadius: "8px", overflow: "hidden" },
-  th: { padding: "15px 12px", textAlign: "left", borderBottom: "2px solid #444", fontWeight: "bold", fontSize: "14px", color: "#ffcc00" },
-  td: { padding: "15px 12px", fontSize: "14px", verticalAlign: "middle" },
-  input: { padding: "8px", borderRadius: "4px", border: "1px solid #555", backgroundColor: "#1c1c1c", color: "white", fontSize: "14px", textAlign: "center" },
-  removeBtn: { backgroundColor: "#ff4444", color: "white", border: "none", padding: "6px 12px", cursor: "pointer", borderRadius: "4px", fontSize: "18px", fontWeight: "bold" },
-  summary: { marginTop: "30px", backgroundColor: "#2a2a2a", padding: "25px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.2)" },
-  summaryTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#fff" },
-  currentLevel: { fontSize: "16px", marginBottom: "10px", color: "#ffcc00" },
-  savings: { fontSize: "18px", marginBottom: "15px", fontWeight: "bold", color: "#0f0" },
-  checkoutBtn: { marginTop: "30px", backgroundColor: "#ffcc00", color: "#1c1c1c", padding: "15px 40px", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "16px", fontWeight: "bold" },
-  modal: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-  modalContent: { backgroundColor: "#2a2a2a", padding: "30px", borderRadius: "8px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)", width: "90%", maxWidth: "400px" },
-  modalTitle: { margin: "0 0 20px 0", color: "#ffcc00", fontSize: "24px", fontWeight: "bold" },
-  label: { display: "block", marginBottom: "8px", color: "#fff", fontWeight: "500" },
-  modalInput: { width: "100%", padding: "12px", marginBottom: "15px", border: "1px solid #555", borderRadius: "4px", backgroundColor: "#1c1c1c", color: "white", fontSize: "14px", outline: "none", boxSizing: "border-box" },
-  helperText: { fontSize: "12px", color: "#aaa", margin: "0 0 20px 0" },
-  modalButtons: { display: "flex", gap: "10px", justifyContent: "space-between" },
-  modalBtn: { flex: 1, backgroundColor: "#ffcc00", color: "#1c1c1c", padding: "12px", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
-  modalBtnDisabled: { backgroundColor: "#999", cursor: "not-allowed", opacity: 0.6 },
-  modalBtnCancel: { flex: 1, backgroundColor: "#555", color: "white", padding: "12px", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "20px",
+  },
+  logoSection: {
+    display: "flex",
+    alignItems: "center",
+    gap: mobile ? "10px" : "15px",
+    cursor: "pointer",
+  },
+  logoImage: {
+    width: mobile ? "100px" : "150px",
+    height: "auto",
+    objectFit: "contain",
+  },
+  logoText: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  logoTitle: {
+    margin: 0,
+    color: "#ffcc00",
+    fontSize: mobile ? "22px" : "30px",
+  },
+  promoButton: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: "8px 16px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
+    whiteSpace: "nowrap",
+  },
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "20px",
+    flexDirection: mobile ? "column" : "row",
+    width: mobile ? "100%" : "auto",
+  },
+  phoneSection: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "12px",
+    color: "white",
+    fontSize: "14px",
+  },
+  phoneContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+  },
+  phoneSub: {
+    color: "#ccc",
+    fontSize: "12px",
+    marginTop: "2px",
+  },
+  headerPhotoLink: {
+    display: "flex",
+    textDecoration: "none",
+  },
+  headerPhoto: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    cursor: "pointer",
+    transition: "transform 0.2s",
+  },
+  mobileContactBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "8px",
+    width: "100%",
+    paddingTop: "12px",
+    borderTop: "1px solid #444",
+    justifyContent: "center",
+  },
+  mobileTelegramLink: {
+    display: "flex",
+    textDecoration: "none",
+  },
+  mobileTelegramIcon: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    objectFit: "cover",
+  },
+  mobilePhoneText: {
+    color: "#ffcc00",
+    fontWeight: "bold",
+    fontSize: "14px",
+    textAlign: "center",
+  },
+  mobileEmailText: {
+    color: "#ccc",
+    fontSize: "12px",
+    textAlign: "center",
+  },
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    gap: mobile ? "10px" : "20px",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  navButton: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: "8px 16px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
+    fontSize: "14px",
+    whiteSpace: "nowrap",
+  },
+  profileContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    position: "relative",
+  },
+  company: {
+    fontSize: "11px",
+    color: "#ffcc00",
+    fontWeight: "500",
+    textAlign: "center",
+    whiteSpace: "nowrap",
+    position: "absolute",
+    top: "100%",
+    marginTop: "4px",
+    left: "50%",
+    transform: "translateX(-50%)",
+  },
+  container: {
+    maxWidth: "1400px",
+    margin: "0 auto",
+    padding: "0 20px",
+  },
+  title: {
+    fontSize: "32px",
+    margin: "40px 0 30px",
+    color: "#ffcc00",
+    fontWeight: "bold",
+  },
+  empty: {
+    fontSize: "18px",
+    color: "#aaa",
+    textAlign: "center",
+    padding: "60px 20px",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    backgroundColor: "#2a2a2a",
+    color: "white",
+    borderRadius: "8px",
+    overflow: "hidden",
+  },
+  th: {
+    padding: "15px 12px",
+    textAlign: "left",
+    borderBottom: "2px solid #444",
+    fontWeight: "bold",
+    fontSize: "14px",
+    color: "#ffcc00",
+  },
+  td: {
+    padding: "15px 12px",
+    fontSize: "14px",
+    verticalAlign: "middle",
+  },
+  input: {
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid #555",
+    backgroundColor: "#1c1c1c",
+    color: "white",
+    fontSize: "14px",
+    textAlign: "center",
+  },
+  removeBtn: {
+    backgroundColor: "#ff4444",
+    color: "white",
+    border: "none",
+    padding: "6px 12px",
+    cursor: "pointer",
+    borderRadius: "4px",
+    fontSize: "18px",
+    fontWeight: "bold",
+  },
+  summary: {
+    marginTop: "30px",
+    backgroundColor: "#2a2a2a",
+    padding: "25px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+  },
+  summaryTitle: {
+    margin: "0 0 15px 0",
+    fontSize: "24px",
+    color: "#fff",
+  },
+  currentLevel: {
+    fontSize: "16px",
+    marginBottom: "10px",
+    color: "#ffcc00",
+  },
+  savings: {
+    fontSize: "18px",
+    marginBottom: "15px",
+    fontWeight: "bold",
+    color: "#0f0",
+  },
+  checkoutBtn: {
+    marginTop: "30px",
+    backgroundColor: "#ffcc00",
+    color: "#1c1c1c",
+    padding: "15px 40px",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "bold",
+  },
+  modal: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: "#2a2a2a",
+    padding: "30px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+    width: "90%",
+    maxWidth: "400px",
+  },
+  modalTitle: {
+    margin: "0 0 20px 0",
+    color: "#ffcc00",
+    fontSize: "24px",
+    fontWeight: "bold",
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    color: "#fff",
+    fontWeight: "500",
+  },
+  modalInput: {
+    width: "100%",
+    padding: "12px",
+    marginBottom: "15px",
+    border: "1px solid #555",
+    borderRadius: "4px",
+    backgroundColor: "#1c1c1c",
+    color: "white",
+    fontSize: "14px",
+    outline: "none",
+    boxSizing: "border-box",
+  },
+  helperText: {
+    fontSize: "12px",
+    color: "#aaa",
+    margin: "0 0 20px 0",
+  },
+  modalButtons: {
+    display: "flex",
+    gap: "10px",
+    justifyContent: "space-between",
+  },
+  modalBtn: {
+    flex: 1,
+    backgroundColor: "#ffcc00",
+    color: "#1c1c1c",
+    padding: "12px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
+  modalBtnDisabled: {
+    backgroundColor: "#999",
+    cursor: "not-allowed",
+    opacity: 0.6,
+  },
+  modalBtnCancel: {
+    flex: 1,
+    backgroundColor: "#555",
+    color: "white",
+    padding: "12px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
 });
