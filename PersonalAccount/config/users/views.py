@@ -191,5 +191,13 @@ class CallBack(APIView):
         return Response(status=200)
         
 
-        
-    
+class SendEmailApi(APIView):
+    def post(self , request):
+        data = request.data
+        try:
+            obj_param = json.dumps(data)
+            logger.info(obj_param)
+            return Response(status=200)
+
+        except Exception as e : 
+            logger.error(e)

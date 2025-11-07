@@ -22,6 +22,14 @@ export default function MainPage() {
   const [callbackError, setCallbackError] = useState("");
   const [callbackSuccess, setCallbackSuccess] = useState("");
 
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailPhone, setEmailPhone] = useState("+7");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
     { src: "/mst.jpg", url: "/catalog/mst/" },
@@ -189,6 +197,68 @@ export default function MainPage() {
     }
   };
 
+  const handleEmailPhoneChange = (e) => {
+    setEmailPhone(formatPhone(e.target.value));
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailAddressChange = (e) => {
+    setEmailAddress(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailMessageChange = (e) => {
+    setEmailMessage(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailSubmit = async () => {
+    setEmailError("");
+    setEmailSuccess("");
+
+    if (!emailAddress.trim()) {
+      setEmailError("Пожалуйста, введите вашу почту");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailAddress)) {
+      setEmailError("Пожалуйста, введите корректный адрес почты");
+      return;
+    }
+
+    const cleaned = emailPhone.replace(/\D/g, "");
+    if (!/^7\d{10}$/.test(cleaned)) {
+      setEmailError("Пожалуйста, введите корректный номер телефона (+7 и 10 цифр)");
+      return;
+    }
+
+    if (!emailMessage.trim()) {
+      setEmailError("Пожалуйста, введите сообщение");
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      await axios.post(`${window.location.origin}/api/email-send/`, {
+        email: emailAddress,
+        phone: emailPhone,
+        message: emailMessage,
+      });
+      setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
+      setEmailPhone("+7");
+      setEmailAddress("");
+      setEmailMessage("");
+    } catch {
+      setEmailError("Ошибка при отправке письма. Попробуйте еще раз.");
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const s = styles(isMobile);
 
   return (
@@ -213,9 +283,12 @@ export default function MainPage() {
         )}
 
         <div style={s.headerRight}>
-         
           {!isMobile && (
             <div style={s.phoneSection}>
+              <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
+                <img src="/email.png" alt="email" style={s.headerIcon} />
+              </button>
+
               <a href="/qwwerwer" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
@@ -239,12 +312,16 @@ export default function MainPage() {
 
           <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
 
-          
           {isMobile && (
             <div style={s.mobileContactBlock}>
-              <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
-                <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
-              </a>
+              <div style={s.mobileIconsContainer}>
+                <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
+                  <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
+                </button>
+                <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                  <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
+                </a>
+              </div>
               <div style={s.mobileContactsContainer}>
                 <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
                 <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
@@ -377,6 +454,53 @@ export default function MainPage() {
           </div>
         </div>
       )}
+
+      {showEmailModal && (
+        <div style={s.modalOverlay} onClick={() => !emailLoading && setShowEmailModal(false)}>
+          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 style={s.modalTitle}>Отправить письмо</h2>
+            <p style={s.modalText}>Заполните поля ниже, и мы свяжемся с вами</p>
+
+            <input
+              type="email"
+              value={emailAddress}
+              onChange={handleEmailAddressChange}
+              style={s.modalInput}
+              placeholder="Ваша почта *"
+              disabled={emailLoading}
+            />
+            <input
+              type="tel"
+              value={emailPhone}
+              onChange={handleEmailPhoneChange}
+              style={s.modalInput}
+              placeholder="Номер телефона *"
+              disabled={emailLoading}
+            />
+            <textarea
+              value={emailMessage}
+              onChange={handleEmailMessageChange}
+              style={{...s.modalInput, minHeight: "100px", fontFamily: "Arial, sans-serif"}}
+              placeholder="Ваше сообщение *"
+              disabled={emailLoading}
+            />
+
+            {emailError && <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{emailError}</div>}
+            {emailSuccess && <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{emailSuccess}</div>}
+
+            <div style={s.modalButtons}>
+              <button style={s.modalSubmitBtn} onClick={handleEmailSubmit} disabled={emailLoading}>
+                {emailLoading ? "Отправка..." : "Отправить"}
+              </button>
+              <button style={s.modalCancelBtn} onClick={() => setShowEmailModal(false)} disabled={emailLoading}>
+                Отмена
+              </button>
+            </div>
+
+            <button style={s.modalClose} onClick={() => setShowEmailModal(false)} disabled={emailLoading}>×</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -391,12 +515,13 @@ export const styles = (mobile) => ({
   logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
   headerRight: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "20px", flexWrap: "wrap", justifyContent: "center" },
   
- 
   phoneSection: { display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", color: "white", fontSize: "14px" },
   phoneContent: { display: "flex", flexDirection: "column", alignItems: "flex-end" },
   phoneSub: { color: "#ccc", fontSize: "12px" },
- 
+  
   mobileContactBlock: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "100%", marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #444" },
+  mobileIconsContainer: { display: "flex", gap: "8px", alignItems: "center" },
+  mobileIconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   mobileTelegramLink: { display: "flex", textDecoration: "none" },
   mobileTelegramIcon: { width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" },
   mobileContactsContainer: { display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" },
@@ -405,6 +530,8 @@ export const styles = (mobile) => ({
   
   headerPhotoLink: { display: "flex", textDecoration: "none" },
   headerPhoto: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", transition: "transform 0.2s" },
+  headerIcon: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", transition: "transform 0.2s" },
+  iconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
   navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
