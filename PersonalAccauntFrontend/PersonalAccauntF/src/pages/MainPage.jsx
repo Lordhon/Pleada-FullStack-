@@ -23,6 +23,7 @@ export default function MainPage() {
   const [callbackSuccess, setCallbackSuccess] = useState("");
 
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailName, setEmailName] = useState("");
   const [emailPhone, setEmailPhone] = useState("+7");
   const [emailAddress, setEmailAddress] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
@@ -197,6 +198,12 @@ export default function MainPage() {
     }
   };
 
+  const handleEmailNameChange = (e) => {
+    setEmailName(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
   const handleEmailPhoneChange = (e) => {
     setEmailPhone(formatPhone(e.target.value));
     setEmailError("");
@@ -218,6 +225,11 @@ export default function MainPage() {
   const handleEmailSubmit = async () => {
     setEmailError("");
     setEmailSuccess("");
+
+    if (!emailName.trim()) {
+      setEmailError("Пожалуйста, введите ваше имя");
+      return;
+    }
 
     if (!emailAddress.trim()) {
       setEmailError("Пожалуйста, введите вашу почту");
@@ -244,11 +256,13 @@ export default function MainPage() {
     setEmailLoading(true);
     try {
       await axios.post(`${window.location.origin}/api/email-send/`, {
+        name: emailName,
         email: emailAddress,
         phone: emailPhone,
         message: emailMessage,
       });
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
+      setEmailName("");
       setEmailPhone("+7");
       setEmailAddress("");
       setEmailMessage("");
@@ -461,6 +475,14 @@ export default function MainPage() {
             <h2 style={s.modalTitle}>Отправить письмо</h2>
             <p style={s.modalText}>Заполните поля ниже, и мы свяжемся с вами</p>
 
+            <input
+              type="text"
+              value={emailName}
+              onChange={handleEmailNameChange}
+              style={s.modalInput}
+              placeholder="Ваше имя *"
+              disabled={emailLoading}
+            />
             <input
               type="email"
               value={emailAddress}

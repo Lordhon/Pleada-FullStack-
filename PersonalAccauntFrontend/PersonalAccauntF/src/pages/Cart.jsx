@@ -22,6 +22,15 @@ export default function CartPage() {
   const [orderMessage, setOrderMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailName, setEmailName] = useState("");
+  const [emailPhone, setEmailPhone] = useState("+7");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+
   const priceChecks = {
     price: 500000,
     price1: 200000,
@@ -134,6 +143,85 @@ export default function CartPage() {
   const handleCheckout = () => {
     if (!isAuthenticated) setShowQuickOrder(true);
     else handleAuthenticatedOrder();
+  };
+
+  const handleEmailNameChange = (e) => {
+    setEmailName(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailPhoneChange = (e) => {
+    setEmailPhone(formatPhone(e.target.value));
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailAddressChange = (e) => {
+    setEmailAddress(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailMessageChange = (e) => {
+    setEmailMessage(e.target.value);
+    setEmailError("");
+    setEmailSuccess("");
+  };
+
+  const handleEmailSubmit = async () => {
+    setEmailError("");
+    setEmailSuccess("");
+
+    if (!emailName.trim()) {
+      setEmailError("Пожалуйста, введите ваше имя");
+      return;
+    }
+
+    if (!emailAddress.trim()) {
+      setEmailError("Пожалуйста, введите вашу почту");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailAddress)) {
+      setEmailError("Пожалуйста, введите корректный адрес почты");
+      return;
+    }
+
+    const cleaned = emailPhone.replace(/\D/g, "");
+    if (!/^7\d{10}$/.test(cleaned)) {
+      setEmailError("Пожалуйста, введите корректный номер телефона (+7 и 10 цифр)");
+      return;
+    }
+
+    if (!emailMessage.trim()) {
+      setEmailError("Пожалуйста, введите сообщение");
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      await fetch(`${url}/api/email-send/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: emailName,
+          email: emailAddress,
+          phone: emailPhone,
+          message: emailMessage,
+        }),
+      });
+      setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
+      setEmailName("");
+      setEmailPhone("+7");
+      setEmailAddress("");
+      setEmailMessage("");
+    } catch {
+      setEmailError("Ошибка при отправке письма. Попробуйте еще раз.");
+    } finally {
+      setEmailLoading(false);
+    }
   };
 
   const handleQuickOrder = async () => {
@@ -348,6 +436,10 @@ export default function CartPage() {
         <div style={s.headerRight}>
           {!isMobile && (
             <div style={s.phoneSection}>
+              <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
+                <img src="/email.png" alt="email" style={s.headerIcon} />
+              </button>
+
               <a href="/qwwerwer" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
@@ -373,9 +465,14 @@ export default function CartPage() {
 
           {isMobile && (
             <div style={s.mobileContactBlock}>
-              <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
-                <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
-              </a>
+              <div style={s.mobileIconsContainer}>
+                <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
+                  <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
+                </button>
+                <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                  <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
+                </a>
+              </div>
               <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
               <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
             </div>
@@ -509,6 +606,61 @@ export default function CartPage() {
           </div>
         </div>
       )}
+
+      {showEmailModal && (
+        <div style={s.modalOverlay} onClick={() => !emailLoading && setShowEmailModal(false)}>
+          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 style={s.modalTitle}>Отправить письмо</h2>
+            <p style={s.modalText}>Заполните поля ниже, и мы свяжемся с вами</p>
+
+            <input
+              type="text"
+              value={emailName}
+              onChange={handleEmailNameChange}
+              style={s.modalInput}
+              placeholder="Ваше имя *"
+              disabled={emailLoading}
+            />
+            <input
+              type="email"
+              value={emailAddress}
+              onChange={handleEmailAddressChange}
+              style={s.modalInput}
+              placeholder="Ваша почта *"
+              disabled={emailLoading}
+            />
+            <input
+              type="tel"
+              value={emailPhone}
+              onChange={handleEmailPhoneChange}
+              style={s.modalInput}
+              placeholder="Номер телефона *"
+              disabled={emailLoading}
+            />
+            <textarea
+              value={emailMessage}
+              onChange={handleEmailMessageChange}
+              style={{...s.modalInput, minHeight: "100px", fontFamily: "Arial, sans-serif"}}
+              placeholder="Ваше сообщение *"
+              disabled={emailLoading}
+            />
+
+            {emailError && <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{emailError}</div>}
+            {emailSuccess && <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{emailSuccess}</div>}
+
+            <div style={s.modalButtons}>
+              <button style={s.modalSubmitBtn} onClick={handleEmailSubmit} disabled={emailLoading}>
+                {emailLoading ? "Отправка..." : "Отправить"}
+              </button>
+              <button style={s.modalCancelBtn} onClick={() => setShowEmailModal(false)} disabled={emailLoading}>
+                Отмена
+              </button>
+            </div>
+
+            <button style={s.modalClose} onClick={() => setShowEmailModal(false)} disabled={emailLoading}>×</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -605,6 +757,21 @@ const styles = (mobile) => ({
     cursor: "pointer",
     transition: "transform 0.2s",
   },
+  headerIcon: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    cursor: "pointer",
+    transition: "transform 0.2s",
+  },
+  iconButton: {
+    background: "none",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    display: "flex",
+  },
   mobileContactBlock: {
     display: "flex",
     flexDirection: "column",
@@ -614,6 +781,18 @@ const styles = (mobile) => ({
     paddingTop: "12px",
     borderTop: "1px solid #444",
     justifyContent: "center",
+  },
+  mobileIconsContainer: {
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
+  },
+  mobileIconButton: {
+    background: "none",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    display: "flex",
   },
   mobileTelegramLink: {
     display: "flex",
@@ -764,6 +943,15 @@ const styles = (mobile) => ({
     fontWeight: "bold",
   },
   modal: {
+    backgroundColor: "#2a2a2a",
+    padding: "30px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+    width: "90%",
+    maxWidth: "400px",
+    position: "relative",
+  },
+  modalOverlay: {
     position: "fixed",
     top: 0,
     left: 0,
@@ -788,6 +976,11 @@ const styles = (mobile) => ({
     color: "#ffcc00",
     fontSize: "24px",
     fontWeight: "bold",
+  },
+  modalText: {
+    color: "#ccc",
+    fontSize: "14px",
+    marginBottom: "20px",
   },
   label: {
     display: "block",
@@ -843,5 +1036,38 @@ const styles = (mobile) => ({
     cursor: "pointer",
     fontWeight: "bold",
     fontSize: "14px",
+  },
+  modalSubmitBtn: {
+    flex: 1,
+    backgroundColor: "#ffcc00",
+    color: "#1c1c1c",
+    border: "none",
+    padding: "12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: "#444",
+    color: "white",
+    border: "none",
+    padding: "12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
+  modalClose: {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    backgroundColor: "transparent",
+    border: "none",
+    color: "#ffcc00",
+    fontSize: "28px",
+    cursor: "pointer",
+    fontWeight: "bold",
   },
 });
