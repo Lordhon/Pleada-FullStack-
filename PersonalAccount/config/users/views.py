@@ -180,6 +180,7 @@ class MeApiView(APIView):
 class CallBack(APIView):
     def post(self ,request):
         a = request.data
+        a["type"]="CallBack"
         b = json.dumps(a , ensure_ascii=False)
         headers = {
                 "Content-Type": "application/json",
@@ -194,9 +195,17 @@ class CallBack(APIView):
 class SendEmailApi(APIView):
     def post(self , request):
         data = request.data
+        data["type"]="SendSMS"
         try:
             obj_param = json.dumps(data)
-            logger.info(obj_param)
+            headers = {
+                "Content-Type": "application/json",
+                "KEY": getkey()
+            }
+            
+            r = requests.get(f'https://parus.ohelp.ru/api_lk?f=callback&obj={obj_param}' , headers=headers)
+
+            logger.info(r.json())
             return Response(status=200)
 
         except Exception as e : 

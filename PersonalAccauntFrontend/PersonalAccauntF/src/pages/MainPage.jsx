@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
+
 export default function MainPage() {
+  
   const navigate = useNavigate();
   const catalogRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -92,11 +95,13 @@ export default function MainPage() {
       try {
         await axios.get(`${url}/api/verify/`, { headers: { Authorization: `Bearer ${token}` } });
         const res = await axios.get(`${url}/api/me/`, { headers: { Authorization: `Bearer ${token}` } });
+        
         setUser(res.data);
         setIsAuthenticated(true);
       } catch {
         localStorage.removeItem("token");
         setIsAuthenticated(false);
+        
         setUser(null);
       }
     };
@@ -276,6 +281,7 @@ export default function MainPage() {
   const s = styles(isMobile);
 
   return (
+
     <div style={s.page}>
       <header style={s.header}>
         <div style={s.headerLeft}>

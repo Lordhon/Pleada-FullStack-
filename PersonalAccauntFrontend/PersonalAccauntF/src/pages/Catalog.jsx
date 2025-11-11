@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const url = location.origin;
-
+const urlink = location.origin
+const urlinok1 = "http://localhost:8000"
 export default function CatalogPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -64,10 +64,10 @@ export default function CatalogPage() {
 
     const verifyAndFetchUser = async () => {
       try {
-        await axios.get(`${url}/api/verify/`, {
+        await axios.get(`${urlink}/api/verify/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const res = await axios.get(`${url}/api/me/`, {
+        const res = await axios.get(`${urlink}/api/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
@@ -91,7 +91,7 @@ export default function CatalogPage() {
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`${url}/api/catalog/${slug}/`)
+    fetch(`${urlink}/api/catalog/${slug}/`)
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text();
