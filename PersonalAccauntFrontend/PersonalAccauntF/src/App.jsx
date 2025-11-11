@@ -8,13 +8,13 @@ import MainPage from "./pages/MainPage.jsx";
 import CatalogPage from "./pages/Catalog.jsx";
 import CartPage from "./pages/Cart.jsx";
 import OrderSuccess from "./pages/OrderSuccess.jsx";
-import YandexMetrika from "./func/Yandex.jsx";
+
 
 function App() {
   return (
     <Router>
       
-      <YandexMetrika />
+      
 
       <Routes>
         <Route path="/register" element={<Register />} />
@@ -24,7 +24,7 @@ function App() {
         <Route path="/catalog/:slug" element={<CatalogPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/order-success" element={<OrderSuccess />} />
-        <Route element={<SecurityEndpoint />} />
+        
       </Routes>
     </Router>
   );
