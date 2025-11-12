@@ -309,7 +309,7 @@ export default function MainPage() {
                 <img src="/email.png" alt="email" style={s.headerIcon} />
               </button>
 
-              <a href="/qwwerwer" style={s.headerPhotoLink}>
+              <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
               
