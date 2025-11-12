@@ -342,7 +342,7 @@ export default function CatalogPage() {
                 <img src="/email.png" alt="email" style={s.headerIcon} />
               </button>
 
-              <a href="/qwwerwer" style={s.headerPhotoLink}>
+              <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
               
@@ -377,7 +377,7 @@ export default function CatalogPage() {
                 <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                   <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
                 </button>
-                <a href="https://t.me/your_telegram" style={s.mobileTelegramLink}>
+                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink}>
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
               </div>
