@@ -1,5 +1,5 @@
 
-import random
+
 from django.core.cache import cache
 from django.core.mail import send_mail
 from rest_framework import status
@@ -7,18 +7,18 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-import uuid
+
 from config import settings
 from users.models import User, UserProfile
 from users.serializer import UserSerializer, UserLoginSerializer
-from dadata import Dadata
+
 import requests
-import os
+
 import json
 import logging
 from datetime import date
 import hashlib
-
+from .tasks import SearchInn , SendEmail
 logger = logging.getLogger(__name__)
 def getkey():
     data = date.today()
@@ -26,12 +26,7 @@ def getkey():
     return digest
 
 
-def generate_token(email):
-    code = f"{random.randint(0, 999999):06d}"
-    token = str(uuid.uuid4())
-    cache.set(f"email:code:{email}", code, timeout=settings.REDIS_TTL)
-    cache.set(f"email:token:{token}", email, timeout=settings.REDIS_TTL)
-    return code , token
+
 
 
 class UserRegister(APIView):
@@ -69,27 +64,8 @@ class UserRegister(APIView):
         user.save()
 
         
-        try:
-            dadata = Dadata(os.getenv("DADATA_API_KEY"))
-            result = dadata.find_by_id("party", inn)
-            profile.company = result[0]['value'] if result else ''
-            profile.save()
-        except Exception as e:
-            logger.error(f"Dadata error: {e}")
-
-        
-        code, token = generate_token(email)
-        link = f"https://zpnn.ru/activate?token={token}"
-
-        
-        send_mail(
-            'Активация Аккаунта',
-            f'Перейди по ссылке для активации:\n{link} или введите код {code}',
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False
-        )
-
+        SearchInn.delay(inn,profile.id)
+        SendEmail.delay(email)
         return Response({'message': 'Код активации отправлен на почту'}, status=status.HTTP_201_CREATED)
 
 
@@ -172,9 +148,9 @@ class MeApiView(APIView):
     def get (self ,request):
         user = request.user
         phone = str(user.phone_number)
-
+        id = user.id
         company = user.userprofile.company
-        return Response({'company':company , 'inn':user.inn , 'phone':phone})
+        return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id})
     
 
 class CallBack(APIView):

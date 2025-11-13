@@ -64,6 +64,8 @@ services:
     build:
       context: ./PersonalAccount/config
     command: celery -A config worker --loglevel=info
+    env_file:
+      - .env
     depends_on:
       - redis
       - db

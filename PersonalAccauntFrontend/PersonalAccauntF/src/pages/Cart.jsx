@@ -335,6 +335,7 @@ export default function CartPage() {
         user: {
           phone: user?.phone || user?.phone_number || "+7",
           inn: user?.inn || "",
+          id_user: user?.id || " ",
         },
         items: orderItems,
         totalSum: totalCartSum,
