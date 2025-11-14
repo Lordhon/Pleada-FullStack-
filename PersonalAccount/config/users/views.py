@@ -149,8 +149,9 @@ class MeApiView(APIView):
         user = request.user
         phone = str(user.phone_number)
         id = user.id
+        email =  user.email
         company = user.userprofile.company
-        return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id})
+        return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id , 'email':email})
     
 
 class CallBack(APIView):
@@ -186,3 +187,4 @@ class SendEmailApi(APIView):
 
         except Exception as e : 
             logger.error(e)
+            return Response(status=400)

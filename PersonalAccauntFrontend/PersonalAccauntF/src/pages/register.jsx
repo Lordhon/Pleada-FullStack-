@@ -57,7 +57,7 @@ export default function RegisterPage() {
     axios
       .post(`${url}/api/register/`, formData)
       .then((response) => {
-        console.log("✅ Успех регистрации:", response.data);
+        
         setMessage("Код активации отправлен на почту.");
       })
       .catch((error) => {

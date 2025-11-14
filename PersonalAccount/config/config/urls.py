@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem
+from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem , HistoryOrder
 from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack , SendEmailApi
 
 urlpatterns = [
@@ -19,6 +19,9 @@ urlpatterns = [
     path('api/callback/' , CallBack.as_view()),
     path('api/search-help/' , HelpSearchItem.as_view()),
     path('api/email-send/' , SendEmailApi.as_view()),
+    path('api/history-orders/' , HistoryOrder.as_view()),
+
+    
 
     
 

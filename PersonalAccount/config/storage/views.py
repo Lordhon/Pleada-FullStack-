@@ -157,8 +157,29 @@ class HelpSearchItem(APIView):
         
         
         
+class HistoryOrder(APIView):
+    def get(self , request):
+        user = request.user
+        user_id = user.id
+        try:
+            obj_param = json.dumps({"id": user_id})
+            url = f"https://parus.ohelp.ru/api_lk?f=list_ord&obj={obj_param}" 
+            headers = {
+                "Content-Type": "application/json",
+                "KEY": getkey()
+            }
+            
+            response = requests.get(url,headers=headers)
+            response_data = response.json()
+            return Response(response_data)
+        except Exception as e : 
+            logger.error(e)
+            return Response({"error": str(e)}, status=400)
+            
 
-    
+
+
+                 
     
 
 
