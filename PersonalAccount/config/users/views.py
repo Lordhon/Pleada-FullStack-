@@ -56,7 +56,8 @@ class UserRegister(APIView):
         user = serializer.save(is_active=False)
 
         
-        profile = UserProfile.objects.create(user=user)
+        profile = UserProfile.objects.create(user=user , inn=inn)
+
 
         
         user.inn = inn
@@ -150,7 +151,8 @@ class MeApiView(APIView):
         phone = str(user.phone_number)
         id = user.id
         email =  user.email
-        company = user.userprofile.company
+        profile = user.userprofile_set.first()
+        company = profile.company if profile else None
         return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id , 'email':email})
     
 
@@ -188,3 +190,23 @@ class SendEmailApi(APIView):
         except Exception as e : 
             logger.error(e)
             return Response(status=400)
+
+
+
+class AddInn(APIView):
+    def post(self, request):
+        inn = request.data.get("inn")
+        if not inn:
+            return Response({"error": "ИНН обязателен"}, status=400)
+
+        profile = UserProfile.objects.create(user=request.user, inn=inn)
+        SearchInn.delay(inn, profile.id)
+
+        return Response({"status": "ИНН добавлен", "id": profile.id}, status=201)
+
+class SeeINN(APIView):
+     def get(self, request):
+         user = request.user
+         profiles  = UserProfile.objects.filter(user=user ).values("inn", "company")
+         return Response(list(profiles))
+         

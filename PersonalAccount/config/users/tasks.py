@@ -32,7 +32,6 @@ def SearchInn(inn  , profile_id):
         company_name = result[0]['value'] if result else ''
         profile.company = company_name
         profile.save()
-        profile.save()
         return result
     except Exception as e:
         logger.error(f"Dadata error: {e}")

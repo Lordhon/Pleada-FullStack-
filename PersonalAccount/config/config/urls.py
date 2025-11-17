@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 
 from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem , HistoryOrder
-from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack , SendEmailApi
+from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack , SendEmailApi , AddInn , SeeINN
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,6 +20,11 @@ urlpatterns = [
     path('api/search-help/' , HelpSearchItem.as_view()),
     path('api/email-send/' , SendEmailApi.as_view()),
     path('api/history-orders/' , HistoryOrder.as_view()),
+    path('api/add-inn/' , AddInn.as_view()),
+    path('api/lookInn/' , SeeINN.as_view()),
+
+    
+    
 
     
 
