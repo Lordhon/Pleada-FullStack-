@@ -15,6 +15,7 @@ export default function AccountPage() {
   const [showAddInn, setShowAddInn] = useState(false);
   const [newInn, setNewInn] = useState("");
   const [addingInn, setAddingInn] = useState(false);
+  const [deletingInn, setDeletingInn] = useState(null);
 
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailName, setEmailName] = useState("");
@@ -60,7 +61,8 @@ export default function AccountPage() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setInns(innsRes.data || []);
+        const innsList = Array.isArray(innsRes.data) ? innsRes.data : [];
+        setInns(innsList);
 
         const ordersRes = await axios.get(
           `${window.location.origin}/api/history-orders/`,
@@ -107,7 +109,8 @@ export default function AccountPage() {
         }
       );
 
-      setInns([...inns, { inn: newInn, company: "Загрузка..." }]);
+      const currentInns = Array.isArray(inns) ? inns : [];
+      setInns([...currentInns, { inn: newInn, company: "Загрузка..." }]);
       setNewInn("");
       setShowAddInn(false);
 
@@ -116,7 +119,10 @@ export default function AccountPage() {
           .get(`${window.location.origin}/api/lookInn/`, {
             headers: { Authorization: `Bearer ${token}` },
           })
-          .then((res) => setInns(res.data || []))
+          .then((res) => {
+            const innsList = Array.isArray(res.data) ? res.data : [];
+            setInns(innsList);
+          })
           .catch((err) => console.error("Ошибка при обновлении ИНН:", err));
       }, 2000);
     } catch (err) {
@@ -124,6 +130,33 @@ export default function AccountPage() {
       setError(err.response?.data?.error || "Ошибка при добавлении ИНН");
     } finally {
       setAddingInn(false);
+    }
+  };
+
+  const handleDeleteInn = async (innToDelete) => {
+    if (!window.confirm(`Вы уверены, что хотите удалить ИНН ${innToDelete}?`)) {
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    try {
+      setDeletingInn(innToDelete);
+      await axios.delete(
+        `${window.location.origin}/api/delete-inn/`,
+        {
+          data: { inn: innToDelete },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const currentInns = Array.isArray(inns) ? inns : [];
+      setInns(currentInns.filter((item) => item.inn !== innToDelete));
+      setError("");
+    } catch (err) {
+      console.error("Ошибка удаления ИНН:", err);
+      setError(err.response?.data?.error || "Ошибка при удалении ИНН");
+    } finally {
+      setDeletingInn(null);
     }
   };
 
@@ -231,11 +264,11 @@ export default function AccountPage() {
         <div style={s.headerRight}>
           {!isMobile && (
             <button
-              style={s.iconWrapper}
               onClick={() => setShowEmailModal(true)}
               title="Написать письмо"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
             >
-              <img src="/email.png" alt="email" style={s.headerIcon} />
+              <img src="/email.png" alt="email" style={{ width: "55px", height: "55px" }} />
             </button>
           )}
 
@@ -244,9 +277,9 @@ export default function AccountPage() {
               href="https://t.me/zapchasticpectex"
               target="_blank"
               rel="noopener noreferrer"
-              style={s.iconWrapper}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
             >
-              <img src="/telega.png" alt="Telegram" style={s.headerIcon} />
+              <img src="/telega.png" alt="Telegram" style={{ width: "55px", height: "55px" }} />
             </a>
           )}
 
@@ -336,6 +369,7 @@ export default function AccountPage() {
                     <tr style={s.tableHeader}>
                       <th style={s.innTableCell}>ИНН</th>
                       <th style={s.innTableCell}>Компания</th>
+                      <th style={s.innTableCell}>Действие</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -343,6 +377,18 @@ export default function AccountPage() {
                       <tr key={index} style={s.innTableRow}>
                         <td style={s.innTableCell}>{item.inn}</td>
                         <td style={s.innTableCell}>{item.company || "-"}</td>
+                        <td style={s.innTableCell}>
+                          <button
+                            onClick={() => handleDeleteInn(item.inn)}
+                            disabled={deletingInn === item.inn}
+                            style={{
+                              ...s.deleteButton,
+                              opacity: deletingInn === item.inn ? 0.6 : 1,
+                            }}
+                          >
+                            {deletingInn === item.inn ? "Удаляется..." : "Удалить"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -624,546 +670,85 @@ function getStatusColor(status) {
 }
 
 export const styles = (mobile) => ({
-  page: {
-    backgroundColor: "#1c1c1c",
-    color: "white",
-    fontFamily: "Arial, sans-serif",
-    minHeight: "100vh",
-    width: "100%",
-    overflowX: "hidden",
-  },
-  header: {
-    display: "flex",
-    flexDirection: mobile ? "column" : "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: mobile ? "10px" : "10px 40px",
-    backgroundColor: "#2a2a2a",
-    gap: "10px",
-    position: "relative",
-  },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
-  logoSection: {
-    display: "flex",
-    alignItems: "center",
-    gap: mobile ? "10px" : "15px",
-    cursor: "pointer",
-  },
-  logoImage: {
-    width: mobile ? "100px" : "150px",
-    height: "auto",
-    objectFit: "contain",
-  },
-  logoTitle: {
-    margin: 0,
-    color: "#ffcc00",
-    fontSize: mobile ? "22px" : "30px",
-  },
-  headerRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: mobile ? "8px" : "20px",
-    flexWrap: "wrap",
-  },
-  navButton: {
-    backgroundColor: "#ffcc00",
-    border: "none",
-    padding: mobile ? "8px 12px" : "8px 16px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    color: "#1c1c1c",
-    whiteSpace: "nowrap",
-    fontSize: mobile ? "12px" : "14px",
-  },
-  container: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: mobile ? "20px 10px" : "40px 20px",
-    width: "100%",
-  },
-  contentWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "30px",
-  },
-  profileSection: {
-    width: "100%",
-  },
-  profileCard: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    padding: mobile ? "20px" : "30px",
-    border: "1px solid #444",
-  },
-  sectionTitle: {
-    fontSize: mobile ? "20px" : "28px",
-    marginBottom: "20px",
-    color: "#ffcc00",
-    margin: "0 0 20px 0",
-  },
-  profileInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-  infoRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingBottom: "10px",
-    borderBottom: "1px solid #444",
-  },
-  label: {
-    fontWeight: "bold",
-    color: "#ffcc00",
-    fontSize: "14px",
-  },
-  value: {
-    color: "#ccc",
-    fontSize: "14px",
-  },
-  innsSection: {
-    width: "100%",
-  },
-  innsSectionHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
-    flexWrap: mobile ? "wrap" : "nowrap",
-    gap: "10px",
-  },
-  addButton: {
-    backgroundColor: "#ffcc00",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    color: "#1c1c1c",
-    fontSize: "14px",
-  },
-  addInnForm: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    padding: "20px",
-    marginBottom: "20px",
-    display: "flex",
-    gap: "10px",
-    flexWrap: mobile ? "wrap" : "nowrap",
-  },
-  input: {
-    flex: 1,
-    minWidth: "200px",
-    padding: "10px 15px",
-    borderRadius: "5px",
-    border: "1px solid #444",
-    backgroundColor: "#1c1c1c",
-    color: "#fff",
-    fontSize: "14px",
-    outline: "none",
-  },
-  submitButton: {
-    backgroundColor: "#4caf50",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    color: "#fff",
-    fontSize: "14px",
-  },
-  cancelButton: {
-    backgroundColor: "#666",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    color: "#fff",
-    fontSize: "14px",
-  },
-  innsTableWrapper: {
-    overflowX: "auto",
-    marginBottom: "20px",
-  },
-  innsTable: {
-    width: "100%",
-    borderCollapse: "collapse",
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    overflow: "hidden",
-    border: "1px solid #444",
-  },
-  innTableCell: {
-    padding: mobile ? "10px 8px" : "15px 20px",
-    textAlign: "left",
-    color: "#ccc",
-    borderBottom: "1px solid #444",
-    fontSize: mobile ? "12px" : "14px",
-  },
-  innTableRow: {
-    borderBottom: "1px solid #444",
-  },
-  ordersSection: {
-    width: "100%",
-  },
-  ordersHeader: {
-    marginBottom: "20px",
-  },
-  ordersCount: {
-    color: "#ccc",
-    fontSize: "14px",
-    margin: "10px 0 0 0",
-  },
-  emptyMessage: {
-    color: "#999",
-    fontSize: "16px",
-    textAlign: "center",
-    padding: "40px 20px",
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-  },
-  errorMessage: {
-    backgroundColor: "#c33",
-    color: "white",
-    padding: "15px",
-    borderRadius: "8px",
-    marginBottom: "20px",
-    fontSize: "14px",
-  },
-  backButton: {
-    backgroundColor: "#666",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    color: "#fff",
-    fontSize: "14px",
-    marginBottom: "20px",
-  },
-  innsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-  innCard: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    padding: "20px",
-    border: "1px solid #444",
-    cursor: "pointer",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  innCardContent: {
-    flex: 1,
-  },
-  innCardTitle: {
-    margin: "0 0 5px 0",
-    fontSize: "18px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  innCardSubtitle: {
-    margin: 0,
-    fontSize: "14px",
-    color: "#999",
-  },
-  innCardArrow: {
-    fontSize: "24px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  innDetails: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    padding: "20px",
-    border: "1px solid #ffcc00",
-    marginBottom: "20px",
-  },
-  innTitle: {
-    margin: "0 0 10px 0",
-    fontSize: "22px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  innSubtitle: {
-    margin: 0,
-    fontSize: "14px",
-    color: "#999",
-  },
-  ordersListCompact: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  orderCardCompact: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "8px",
-    padding: "15px",
-    border: "1px solid #444",
-    cursor: "pointer",
-  },
-  orderCardCompactHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "10px",
-  },
-  orderNumberCompact: {
-    margin: "0 0 5px 0",
-    fontSize: "16px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  orderDateCompact: {
-    margin: 0,
-    fontSize: "12px",
-    color: "#999",
-  },
-  statusBadge: {
-    padding: "5px 12px",
-    borderRadius: "5px",
-    fontSize: "12px",
-    fontWeight: "bold",
-    color: "white",
-    margin: 0,
-  },
-  orderCardCompactFooter: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTop: "1px solid #444",
-    paddingTop: "10px",
-  },
-  itemCountCompact: {
-    fontSize: "12px",
-    color: "#ccc",
-  },
-  totalCompact: {
-    fontSize: "14px",
-    fontWeight: "bold",
-    color: "#ffcc00",
-  },
-  orderDetailCard: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: "10px",
-    overflow: "hidden",
-    border: "1px solid #444",
-  },
-  orderDetailHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    padding: "20px",
-    backgroundColor: "#333",
-    borderBottom: "1px solid #444",
-  },
-  orderDetailNumber: {
-    margin: "0 0 5px 0",
-    fontSize: "24px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  orderDetailDate: {
-    margin: 0,
-    fontSize: "12px",
-    color: "#999",
-  },
-  orderDetailMeta: {
-    display: "flex",
-    gap: "30px",
-    padding: "20px",
-    backgroundColor: "#333",
-    borderBottom: "1px solid #444",
-    flexWrap: mobile ? "wrap" : "nowrap",
-  },
-  metaItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-  },
-  metaLabel: {
-    fontSize: "12px",
-    color: "#999",
-    fontWeight: "bold",
-  },
-  metaValue: {
-    fontSize: "16px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  itemsList: {
-    padding: "20px",
-    overflowX: "auto",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    fontSize: mobile ? "12px" : "14px",
-  },
-  tableHeader: {
-    backgroundColor: "#1c1c1c",
-    borderBottom: "2px solid #ffcc00",
-  },
-  tableCell: {
-    padding: mobile ? "8px 5px" : "12px",
-    textAlign: "left",
-    color: "#ccc",
-    borderBottom: "1px solid #444",
-  },
-  tableRow: {
-    borderBottom: "1px solid #444",
-  },
-  orderDetailFooter: {
-    padding: "20px",
-    backgroundColor: "#333",
-    borderTop: "1px solid #444",
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: "15px",
-    fontSize: "16px",
-  },
-  orderDetailSummaryLabel: {
-    fontWeight: "bold",
-    color: "#ffcc00",
-  },
-  orderDetailSummaryValue: {
-    fontWeight: "bold",
-    color: "#ffcc00",
-    fontSize: "18px",
-  },
-  loadingContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "400px",
-    fontSize: "18px",
-    color: "#ccc",
-  },
-  iconWrapper: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-  },
-  headerIcon: {
-    width: "55px",
-    height: "55px",
-    objectFit: "contain",
-    backgroundColor: "transparent",
-    borderRadius: "50%",
-    transition: "transform 0.2s",
-  },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: "#2a2a2a",
-    padding: "30px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-    maxWidth: "400px",
-    width: "90%",
-    position: "relative",
-    colorScheme: "dark",
-  },
-  modalTitle: {
-    margin: "0 0 15px 0",
-    fontSize: "24px",
-    color: "#ffcc00",
-    fontWeight: "bold",
-  },
-  modalText: {
-    color: "#ccc",
-    fontSize: "14px",
-    marginBottom: "20px",
-  },
-  modalInput: {
-    width: "100%",
-    padding: "12px",
-    marginBottom: "20px",
-    borderRadius: "6px",
-    border: "1px solid #444",
-    backgroundColor: "#1c1c1c",
-    color: "white",
-    fontSize: "16px",
-    boxSizing: "border-box",
-    colorScheme: "dark",
-  },
-  modalTextarea: {
-    width: "100%",
-    padding: "12px",
-    marginBottom: "20px",
-    borderRadius: "6px",
-    border: "1px solid #444",
-    backgroundColor: "#1c1c1c",
-    color: "white",
-    fontSize: "16px",
-    boxSizing: "border-box",
-    minHeight: "100px",
-    fontFamily: "Arial, sans-serif",
-    colorScheme: "dark",
-  },
-  modalButtons: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "space-between",
-  },
-  modalSend: {
-    flex: 1,
-    backgroundColor: "#ffcc00",
-    color: "#1c1c1c",
-    border: "none",
-    padding: "12px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "14px",
-  },
-  modalCancel: {
-    flex: 1,
-    backgroundColor: "#444",
-    color: "white",
-    border: "none",
-    padding: "12px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "14px",
-  },
-  modalClose: {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#ffcc00",
-    fontSize: "28px",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-  successMessage: {
-    color: "limegreen",
-    fontSize: "14px",
-    marginBottom: "20px",
-  },
+  page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
+  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "10px", position: "relative" },
+  headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
+  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
+  logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
+  logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
+  headerRight: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "20px", flexWrap: "wrap" },
+  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
+  container: { maxWidth: "1200px", margin: "0 auto", padding: mobile ? "20px 10px" : "40px 20px", width: "100%" },
+  contentWrapper: { display: "flex", flexDirection: "column", gap: "30px" },
+  profileSection: { width: "100%" },
+  profileCard: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: mobile ? "20px" : "30px", border: "1px solid #444" },
+  sectionTitle: { fontSize: mobile ? "20px" : "28px", marginBottom: "20px", color: "#ffcc00", margin: "0 0 20px 0" },
+  profileInfo: { display: "flex", flexDirection: "column", gap: "15px" },
+  infoRow: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "10px", borderBottom: "1px solid #444" },
+  label: { fontWeight: "bold", color: "#ffcc00", fontSize: "14px" },
+  value: { color: "#ccc", fontSize: "14px" },
+  innsSection: { width: "100%" },
+  innsSectionHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: mobile ? "wrap" : "nowrap", gap: "10px" },
+  addButton: { backgroundColor: "#ffcc00", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", fontSize: "14px" },
+  addInnForm: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", marginBottom: "20px", display: "flex", gap: "10px", flexWrap: mobile ? "wrap" : "nowrap" },
+  input: { flex: 1, minWidth: "200px", padding: "10px 15px", borderRadius: "5px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "#fff", fontSize: "14px", outline: "none" },
+  submitButton: { backgroundColor: "#4caf50", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
+  cancelButton: { backgroundColor: "#666", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
+  deleteButton: { backgroundColor: "#f44336", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "12px" },
+  innsTableWrapper: { overflowX: "auto", marginBottom: "20px" },
+  innsTable: { width: "100%", borderCollapse: "collapse", backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", border: "1px solid #444" },
+  innTableCell: { padding: mobile ? "10px 8px" : "15px 20px", textAlign: "left", color: "#ccc", borderBottom: "1px solid #444", fontSize: mobile ? "12px" : "14px" },
+  innTableRow: { borderBottom: "1px solid #444" },
+  ordersSection: { width: "100%" },
+  ordersHeader: { marginBottom: "20px" },
+  ordersCount: { color: "#ccc", fontSize: "14px", margin: "10px 0 0 0" },
+  emptyMessage: { color: "#999", fontSize: "16px", textAlign: "center", padding: "40px 20px", backgroundColor: "#2a2a2a", borderRadius: "10px" },
+  errorMessage: { backgroundColor: "#c33", color: "white", padding: "15px", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" },
+  backButton: { backgroundColor: "#666", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px", marginBottom: "20px" },
+  innsList: { display: "flex", flexDirection: "column", gap: "15px" },
+  innCard: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", border: "1px solid #444", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  innCardContent: { flex: 1 },
+  innCardTitle: { margin: "0 0 5px 0", fontSize: "18px", color: "#ffcc00", fontWeight: "bold" },
+  innCardSubtitle: { margin: 0, fontSize: "14px", color: "#999" },
+  innCardArrow: { fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },
+  innDetails: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", border: "1px solid #ffcc00", marginBottom: "20px" },
+  innTitle: { margin: "0 0 10px 0", fontSize: "22px", color: "#ffcc00", fontWeight: "bold" },
+  innSubtitle: { margin: 0, fontSize: "14px", color: "#999" },
+  ordersListCompact: { display: "flex", flexDirection: "column", gap: "10px" },
+  orderCardCompact: { backgroundColor: "#2a2a2a", borderRadius: "8px", padding: "15px", border: "1px solid #444", cursor: "pointer" },
+  orderCardCompactHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" },
+  orderNumberCompact: { margin: "0 0 5px 0", fontSize: "16px", color: "#ffcc00", fontWeight: "bold" },
+  orderDateCompact: { margin: 0, fontSize: "12px", color: "#999" },
+  statusBadge: { padding: "5px 12px", borderRadius: "5px", fontSize: "12px", fontWeight: "bold", color: "white", margin: 0 },
+  orderCardCompactFooter: { display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #444", paddingTop: "10px" },
+  itemCountCompact: { fontSize: "12px", color: "#ccc" },
+  totalCompact: { fontSize: "14px", fontWeight: "bold", color: "#ffcc00" },
+  orderDetailCard: { backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", border: "1px solid #444" },
+  orderDetailHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "20px", backgroundColor: "#333", borderBottom: "1px solid #444" },
+  orderDetailNumber: { margin: "0 0 5px 0", fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },
+  orderDetailDate: { margin: 0, fontSize: "12px", color: "#999" },
+  orderDetailMeta: { display: "flex", gap: "30px", padding: "20px", backgroundColor: "#333", borderBottom: "1px solid #444", flexWrap: mobile ? "wrap" : "nowrap" },
+  metaItem: { display: "flex", flexDirection: "column", gap: "5px" },
+  metaLabel: { fontSize: "12px", color: "#999", fontWeight: "bold" },
+  metaValue: { fontSize: "16px", color: "#ffcc00", fontWeight: "bold" },
+  itemsList: { padding: "20px", overflowX: "auto" },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: mobile ? "12px" : "14px" },
+  tableHeader: { backgroundColor: "#1c1c1c", borderBottom: "2px solid #ffcc00" },
+  tableCell: { padding: mobile ? "8px 5px" : "12px", textAlign: "left", color: "#ccc", borderBottom: "1px solid #444" },
+  tableRow: { borderBottom: "1px solid #444" },
+  orderDetailFooter: { padding: "20px", backgroundColor: "#333", borderTop: "1px solid #444", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "15px", fontSize: "16px" },
+  orderDetailSummaryLabel: { fontWeight: "bold", color: "#ffcc00" },
+  orderDetailSummaryValue: { fontWeight: "bold", color: "#ffcc00", fontSize: "18px" },
+  loadingContainer: { display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px", fontSize: "18px", color: "#ccc" },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+  modal: { backgroundColor: "#2a2a2a", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "400px", width: "90%", position: "relative", colorScheme: "dark" },
+  modalTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },
+  modalText: { color: "#ccc", fontSize: "14px", marginBottom: "20px" },
+  modalInput: { width: "100%", padding: "12px", marginBottom: "20px", borderRadius: "6px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "16px", boxSizing: "border-box", colorScheme: "dark" },
+  modalTextarea: { width: "100%", padding: "12px", marginBottom: "20px", borderRadius: "6px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "16px", boxSizing: "border-box", minHeight: "100px", fontFamily: "Arial, sans-serif", colorScheme: "dark" },
+  modalButtons: { display: "flex", gap: "10px", justifyContent: "space-between" },
+  modalSend: { flex: 1, backgroundColor: "#ffcc00", color: "#1c1c1c", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
+  modalCancel: { flex: 1, backgroundColor: "#444", color: "white", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
+  modalClose: { position: "absolute", top: "10px", right: "10px", backgroundColor: "transparent", border: "none", color: "#ffcc00", fontSize: "28px", cursor: "pointer", fontWeight: "bold" },
+  successMessage: { color: "limegreen", fontSize: "14px", marginBottom: "20px" },
 });

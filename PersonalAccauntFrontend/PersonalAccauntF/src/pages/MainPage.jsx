@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 
-
 export default function MainPage() {
   
   const navigate = useNavigate();
@@ -80,7 +79,7 @@ export default function MainPage() {
     document.documentElement.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
-
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     const url = window.location.origin;

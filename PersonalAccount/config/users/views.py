@@ -210,3 +210,14 @@ class SeeINN(APIView):
          profiles  = UserProfile.objects.filter(user=user ).values("inn", "company")
          return Response(list(profiles))
          
+
+class DeleteINN(APIView):
+    def delete(self , request):
+        try:
+            inn = request.data.get('inn')
+
+            userinn = UserProfile.objects.filter(user=request.user,inn=inn).first()
+            userinn.delete()
+            return Response({'code':'200' } , status=200)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
