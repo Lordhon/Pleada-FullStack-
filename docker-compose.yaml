@@ -1,6 +1,7 @@
 services:
   backend:
     container_name: backend
+    restart: unless-stopped
     build:
       context: ./PersonalAccount/config
     expose:
@@ -21,6 +22,7 @@ services:
       - redis
 
   frontend:
+    restart: unless-stopped
     build:
       context: ./PersonalAccauntFrontend/PersonalAccauntF
       dockerfile: Dockerfile
@@ -29,7 +31,9 @@ services:
       - frontend_dist:/dist
 
   db:
+
     image: postgres:17
+    restart: unless-stopped
     container_name: db
     ports:
       - "5432:5432"
@@ -41,6 +45,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   nginx:
+    restart: unless-stopped
     build:
       context: ./nginx
       dockerfile: Dockerfile.nginx
@@ -55,12 +60,15 @@ services:
       - frontend
 
   redis:
+
     image: redis:8
+    restart: unless-stopped
     container_name: redis
     expose:
       - "6379"
 
   celery_worker:
+    restart: unless-stopped
     build:
       context: ./PersonalAccount/config
     command: celery -A config worker --loglevel=info
@@ -81,6 +89,7 @@ services:
       PASSWORD_DB: ${PASSWORD_DB}
 
   celery_beat:
+    restart: unless-stopped
     build:
       context: ./PersonalAccount/config
     command: celery -A config beat --loglevel=info
