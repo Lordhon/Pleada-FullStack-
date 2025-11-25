@@ -8,6 +8,14 @@ function formatPhone(val) {
   if (!val.startsWith("+7")) val = "+7";
   return "+7" + val.slice(2).replace(/\D/g, "");
 }
+const formatPrice = (value) => {
+  const numericValue = Number(value ?? 0);
+  const truncated = Math.trunc(numericValue * 100) / 100;
+  return truncated.toLocaleString("ru-RU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -30,6 +38,7 @@ export default function CartPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
+  const notifyCartUpdate = () => window.dispatchEvent(new Event("cartUpdated"));
 
   const priceChecks = {
     price: 500000,
@@ -87,6 +96,7 @@ export default function CartPage() {
   }, []);
 
   const cartItems = Object.values(cart);
+  const cartTotalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
   const calculateSum = (priceKey) =>
     cartItems.reduce((sum, item) => sum + item[priceKey] * item.quantity, 0);
@@ -127,6 +137,7 @@ export default function CartPage() {
       if (q > maxStock) q = maxStock;
       const updated = { ...prev, [art]: { ...prev[art], quantity: q } };
       localStorage.setItem("cart", JSON.stringify(updated));
+      notifyCartUpdate();
       return updated;
     });
   };
@@ -136,6 +147,7 @@ export default function CartPage() {
       const updated = { ...prev };
       delete updated[art];
       localStorage.setItem("cart", JSON.stringify(updated));
+      notifyCartUpdate();
       return updated;
     });
   };
@@ -294,6 +306,7 @@ export default function CartPage() {
         setAwaitingCode(false);
         setCart({});
         localStorage.removeItem("cart");
+        notifyCartUpdate();
         setOrderMessage(`✅ Заказ оформлен!\nНомер заказа: ${orderNumber}`);
         setPhone("+7");
         setCode("");
@@ -394,6 +407,7 @@ export default function CartPage() {
 
       setCart({});
       localStorage.removeItem("cart");
+      notifyCartUpdate();
 
     
       navigate("/order-success");
@@ -460,7 +474,14 @@ export default function CartPage() {
                 {user?.company && <span style={s.company}>{user.company}</span>}
               </div>
             )}
-            <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+            <div style={{ position: "relative" }}>
+              <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+              {cartTotalCount > 0 && (
+                <div style={s.cartBadge}>
+                  <div style={s.cartCount}>{cartTotalCount}</div>
+                </div>
+              )}
+            </div>
             <button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>
           </nav>
 
@@ -510,7 +531,7 @@ export default function CartPage() {
                     <tr key={item.art}>
                       <td style={s.td}>{item.art}</td>
                       <td style={s.td}>{item.name}</td>
-                      <td style={s.td}>{dynamicPrice.toLocaleString()}</td>
+                      <td style={s.td}>{formatPrice(dynamicPrice)}</td>
                       <td style={s.td}>
                         <input
                           type="number"
@@ -524,9 +545,9 @@ export default function CartPage() {
                           }}
                         />
                       </td>
-                      <td style={s.td}>{sumItem.toLocaleString()}</td>
+                      <td style={s.td}>{formatPrice(sumItem)}</td>
                       <td style={{ ...s.td, color: save > 0 ? "#0f0" : "#ccc" }}>
-                        {save > 0 ? `-${save.toLocaleString()}` : "-"}
+                        {save > 0 ? `-${formatPrice(save)}` : "-"}
                       </td>
                       <td style={s.td}>{item.kl}</td>
                       <td style={s.td}>
@@ -539,13 +560,13 @@ export default function CartPage() {
             </table>
 
             <div style={s.summary}>
-              <h3 style={s.summaryTitle}>Итого: {totalCartSum.toLocaleString()} ₽</h3>
+              <h3 style={s.summaryTitle}>Итого: {formatPrice(totalCartSum)} ₽</h3>
               <div style={s.currentLevel}>
                 Уровень цен: <strong>{currentPriceLevel}</strong>
               </div>
               {totalSavings > 0 && (
                 <div style={s.savings}>
-                  Экономия: <strong style={{ color: "#0f0" }}>{totalSavings.toLocaleString()} ₽</strong>
+                  Экономия: <strong style={{ color: "#0f0" }}>{formatPrice(totalSavings)} ₽</strong>
                 </div>
               )}
             </div>
@@ -834,6 +855,25 @@ const styles = (mobile) => ({
     color: "#1c1c1c",
     fontSize: "14px",
     whiteSpace: "nowrap",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ff4444",
+    borderRadius: "50%",
+    width: "20px",
+    height: "20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+  },
+  cartCount: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#fff",
+    lineHeight: 1,
   },
   profileContainer: {
     display: "flex",

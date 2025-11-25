@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useCartTotals from "../hooks/useCartTotals";
 
 export default function PrivateEndpoint() {
     const navigate = useNavigate();
@@ -8,6 +9,7 @@ export default function PrivateEndpoint() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const token = localStorage.getItem("token");
     const url = window.location.origin; 
+    const cartTotal = useCartTotals();
 
     useEffect(() => {
         if (!token) {
@@ -59,9 +61,16 @@ export default function PrivateEndpoint() {
                 </div>
             )}
 
-            <button style={styles.button} onClick={() => navigate("/cart")}>
-                Корзина
-            </button>
+            <div style={styles.cartWrapper}>
+                <button style={styles.button} onClick={() => navigate("/cart")}>
+                    Корзина
+                </button>
+                {cartTotal > 0 && (
+                    <div style={styles.cartBadge}>
+                        <div style={styles.cartCount}>{cartTotal}</div>
+                    </div>
+                )}
+            </div>
             <button style={styles.button} onClick={() => navigate("/")}>
                 Каталог
             </button>
@@ -86,6 +95,28 @@ const styles = {
         fontWeight: "bold",
         color: "#1c1c1c",
         whiteSpace: "nowrap"
+    },
+    cartWrapper: {
+        position: "relative"
+    },
+    cartBadge: {
+        position: "absolute",
+        top: "-8px",
+        right: "-8px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#ff4444",
+        borderRadius: "50%",
+        width: "20px",
+        height: "20px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
+    },
+    cartCount: {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fff",
+        lineHeight: 1
     },
     company: {
         fontSize: "11px",

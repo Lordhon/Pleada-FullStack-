@@ -40,7 +40,9 @@ class UserRegister(APIView):
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
         inn = serializer.validated_data['inn']
+        first_name = serializer.validated_data['first_name']
         phone = serializer.validated_data.get('phone_number', '')
+
 
         
         existing_user = User.objects.filter(email=email).first()

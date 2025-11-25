@@ -4,6 +4,14 @@ import axios from "axios";
 
 const urlink = location.origin
 const urlinok1 = "http://localhost:8000"
+const formatPrice = (value) => {
+  const numericValue = Number(value ?? 0);
+  const truncated = Math.trunc(numericValue * 100) / 100;
+  return truncated.toLocaleString("ru-RU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 export default function CatalogPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -45,6 +53,7 @@ export default function CatalogPage() {
 
   const itemRefs = useRef({});
   const searchWrapperRef = useRef(null);
+  const notifyCartUpdate = () => window.dispatchEvent(new Event("cartUpdated"));
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -234,6 +243,7 @@ export default function CatalogPage() {
       if (updated[item.art]) updated[item.art].quantity += 1;
       else updated[item.art] = { ...item, quantity: 1 };
       localStorage.setItem("cart", JSON.stringify(updated));
+      notifyCartUpdate();
       return updated;
     });
   };
@@ -248,6 +258,7 @@ export default function CatalogPage() {
     setCart((prev) => {
       const updated = { ...prev, [art]: { ...prev[art], quantity } };
       localStorage.setItem("cart", JSON.stringify(updated));
+      notifyCartUpdate();
       return updated;
     });
   };
@@ -257,11 +268,20 @@ export default function CatalogPage() {
       const updated = { ...prev };
       delete updated[art];
       localStorage.setItem("cart", JSON.stringify(updated));
+      notifyCartUpdate();
       return updated;
     });
   };
 
   const isInCart = (art) => cart.hasOwnProperty(art);
+
+  const getCartTotal = () => {
+    return Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  const getCartSum = () => {
+    return Object.values(cart).reduce((sum, item) => sum + item.price3 * item.quantity, 0);
+  };
 
   const { currentLevelKey, nextLevelRemaining } = (() => {
     const cartItems = Object.values(cart);
@@ -306,6 +326,9 @@ export default function CatalogPage() {
     : [];
 
   if (loading) return <div style={s.loading}>Загрузка...</div>;
+
+  const cartTotal = getCartTotal();
+  const cartSum = getCartSum();
 
   return (
     <div style={s.page}>
@@ -367,9 +390,16 @@ export default function CatalogPage() {
             </div>
           )}
 
-          <button style={s.navButton} onClick={() => navigate("/cart")}>
-            Корзина
-          </button>
+          <div style={{ position: "relative" }}>
+            <button style={s.navButton} onClick={() => navigate("/cart")}>
+              Корзина
+            </button>
+            {cartTotal > 0 && (
+              <div style={s.cartBadge}>
+                <div style={s.cartCount}>{cartTotal}</div>
+              </div>
+            )}
+          </div>
 
           {isMobile && (
             <div style={s.mobileContactBlock}>
@@ -473,11 +503,15 @@ export default function CatalogPage() {
       </section>
 
       <section style={s.content}>
+        <div style={s.catalogNotice}>
+          Цены действительны на условиях 100% предоплаты
+        </div>
         <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
         <div style={s.tableContainer}>
           <table style={s.table}>
             <thead>
               <tr style={s.tableHeaderRow}>
+                <th style={s.tableHeader}>№</th>
                 <th style={s.tableHeader}>Артикул</th>
                 <th style={s.tableHeader}>Название</th>
                 <th style={s.tableHeader}>
@@ -511,6 +545,7 @@ export default function CatalogPage() {
                       backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",
                     }}
                   >
+                    <td style={{ ...s.tableCell, textAlign: "center" }}>{index + 1}</td>
                     <td style={s.tableCell}>{item.art}</td>
                     <td style={s.tableCell}>{item.name}</td>
 
@@ -522,11 +557,11 @@ export default function CatalogPage() {
                             color: currentLevelKey === type ? "#ffcc00" : "#eee",
                           }}
                         >
-                          {item[type].toLocaleString()} ₽
+                          {formatPrice(item[type])} ₽
                         </div>
                         {currentLevelKey === type && nextLevelRemaining > 0 && (
                           <div style={s.nextLevelHint}>
-                            До следующего уровня: {nextLevelRemaining.toLocaleString()} ₽
+                            До следующего уровня: {formatPrice(nextLevelRemaining)} ₽
                           </div>
                         )}
                       </td>
@@ -567,7 +602,7 @@ export default function CatalogPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={s.noDataCell}>
+                  <td colSpan="9" style={s.noDataCell}>
                     Нет товаров
                   </td>
                 </tr>
@@ -791,6 +826,27 @@ const styles = (mobile) => ({
     whiteSpace: "nowrap",
     fontSize: "14px",
   },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ff4444",
+    borderRadius: "50%",
+    width: "20px",
+    height: "20px",
+    padding: "1px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+  },
+  cartCount: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "white",
+    lineHeight: 1,
+  },
   iconButton: {
     background: "none",
     border: "none",
@@ -860,6 +916,11 @@ const styles = (mobile) => ({
     color: "#ffcc00",
     fontWeight: "bold",
     margin: "0 0 15px 0",
+  },
+  catalogNotice: {
+    fontSize: mobile ? "13px" : "16px",
+    color: "#fff",
+    marginBottom: "12px",
   },
   catalogGrid: {
     display: "grid",

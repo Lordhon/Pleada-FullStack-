@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+const formatPrice = (value) => {
+  const numericValue = Number(value ?? 0);
+  const truncated = Math.trunc(numericValue * 100) / 100;
+  return truncated.toLocaleString("ru-RU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+import useCartTotals from "../hooks/useCartTotals";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -25,6 +34,7 @@ export default function AccountPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
+  const cartTotal = useCartTotals();
 
   useEffect(() => {
     document.body.style.margin = "0";
@@ -290,9 +300,16 @@ export default function AccountPage() {
             Каталог
           </button>
 
-          <button style={s.navButton} onClick={() => navigate("/cart")}>
-            Корзина
-          </button>
+          <div style={{ position: "relative" }}>
+            <button style={s.navButton} onClick={() => navigate("/cart")}>
+              Корзина
+            </button>
+            {cartTotal > 0 && (
+              <div style={s.cartBadge}>
+                <div style={s.cartCount}>{cartTotal}</div>
+              </div>
+            )}
+          </div>
 
           <button style={s.navButton} onClick={handleLogout}>
             Выход
@@ -427,13 +444,12 @@ export default function AccountPage() {
 
                     <div style={s.ordersListCompact}>
                       {ordersForSelectedInn.map((order, index) => {
-                        const totalSum = order.item
-                          ?.reduce(
-                            (sum, item) =>
-                              sum + parseFloat(item.price) * item.kol,
+                        const totalSum =
+                          order.item?.reduce(
+                            (sum, item) => sum + parseFloat(item.price) * item.kol,
                             0
-                          )
-                          .toFixed(2) || 0;
+                          ) || 0;
+                        const formattedOrderTotal = formatPrice(totalSum);
 
                         return (
                           <div
@@ -461,7 +477,7 @@ export default function AccountPage() {
                               <span style={s.itemCountCompact}>
                                 {order.item?.length || 0} товаров
                               </span>
-                              <span style={s.totalCompact}>{totalSum} ₽</span>
+                              <span style={s.totalCompact}>{formattedOrderTotal} ₽</span>
                             </div>
                           </div>
                         );
@@ -544,18 +560,17 @@ export default function AccountPage() {
                       </thead>
                       <tbody>
                         {selectedOrder.item?.map((item, itemIndex) => {
-                          const total = (
-                            parseFloat(item.price) * item.kol
-                          ).toFixed(2);
+                          const priceValue = parseFloat(item.price) || 0;
+                          const total = priceValue * item.kol;
                           return (
                             <tr key={itemIndex} style={s.tableRow}>
                               <td style={s.tableCell}>{item.nm}</td>
                               <td style={s.tableCell}>{item.art}</td>
                               <td style={s.tableCell}>{item.kol}</td>
                               <td style={s.tableCell}>
-                                {parseFloat(item.price).toFixed(2)} ₽
+                                {formatPrice(priceValue)} ₽
                               </td>
-                              <td style={s.tableCell}>{total} ₽</td>
+                              <td style={s.tableCell}>{formatPrice(total)} ₽</td>
                             </tr>
                           );
                         })}
@@ -568,13 +583,13 @@ export default function AccountPage() {
                       Общая сумма заказа:
                     </span>
                     <span style={s.orderDetailSummaryValue}>
-                      {selectedOrder.item
-                        ?.reduce(
+                      {formatPrice(
+                        selectedOrder.item?.reduce(
                           (sum, item) =>
                             sum + parseFloat(item.price) * item.kol,
                           0
-                        )
-                        .toFixed(2)} ₽
+                        ) || 0
+                      )} ₽
                     </span>
                   </div>
                 </div>
@@ -678,6 +693,25 @@ export const styles = (mobile) => ({
   logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
   headerRight: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "20px", flexWrap: "wrap" },
   navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ff4444",
+    borderRadius: "50%",
+    width: "20px",
+    height: "20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+  },
+  cartCount: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#fff",
+    lineHeight: 1,
+  },
   container: { maxWidth: "1200px", margin: "0 auto", padding: mobile ? "20px 10px" : "40px 20px", width: "100%" },
   contentWrapper: { display: "flex", flexDirection: "column", gap: "30px" },
   profileSection: { width: "100%" },

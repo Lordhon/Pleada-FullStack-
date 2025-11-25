@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    first_name: "",
     inn: "",
     phone_number: "+7",
   });
@@ -158,6 +159,16 @@ export default function RegisterPage() {
 
           <input
             type="text"
+            name="first_name"
+            placeholder="Имя"
+            value={formData.first_name}
+            onChange={handleChange}
+            style={s.modalInput}
+            required
+          />
+
+          <input
+            type="text"
             name="inn"
             placeholder="ИНН"
             value={formData.inn}
@@ -237,7 +248,7 @@ export default function RegisterPage() {
               opacity: loading ? 0.6 : 1,
               cursor: loading ? "not-allowed" : "pointer",
             }}
-            disabled={loading}ы
+            disabled={loading}
           >
             {loading ? "Проверка..." : "Подтвердить"}
           </button>

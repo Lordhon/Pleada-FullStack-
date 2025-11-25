@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useCartTotals from "../hooks/useCartTotals";
 
 
 export default function MainPage() {
@@ -226,6 +227,8 @@ export default function MainPage() {
     setEmailSuccess("");
   };
 
+  const cartTotal = useCartTotals();
+
   const handleEmailSubmit = async () => {
     setEmailError("");
     setEmailSuccess("");
@@ -329,7 +332,14 @@ export default function MainPage() {
             </div>
           )}
 
-          <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+          <div style={{ position: "relative" }}>
+            <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+            {cartTotal > 0 && (
+              <div style={s.cartBadge}>
+                <div style={s.cartCount}>{cartTotal}</div>
+              </div>
+            )}
+          </div>
 
           {isMobile && (
             <div style={s.mobileContactBlock}>
@@ -561,6 +571,25 @@ export const styles = (mobile) => ({
   iconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
   navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ff4444",
+    borderRadius: "50%",
+    width: "20px",
+    height: "20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+  },
+  cartCount: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#fff",
+    lineHeight: 1,
+  },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
   searchContainer: { display: "flex", justifyContent: "center", padding: "15px 10px", backgroundColor: "#222" },

@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const url = location.origin;
+const formatPrice = (value) => {
+  const numericValue = Number(value ?? 0);
+  const truncated = Math.trunc(numericValue * 100) / 100;
+  return truncated.toLocaleString("ru-RU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
@@ -63,7 +71,7 @@ export default function OrderSuccess() {
               </div>
               <div style={s.orderRow}>
                 <span style={s.label}>Сумма:</span>
-                <span style={s.value}>{orderData.totalSum.toLocaleString()} ₽</span>
+                <span style={s.value}>{formatPrice(orderData.totalSum)} ₽</span>
               </div>
               <div style={s.orderRow}>
                 <span style={s.label}>Уровень цен:</span>
@@ -72,7 +80,7 @@ export default function OrderSuccess() {
               {orderData.savings > 0 && (
                 <div style={s.orderRow}>
                   <span style={s.label}>Экономия:</span>
-                  <span style={{ ...s.value, color: "#0f0" }}>-{orderData.savings.toLocaleString()} ₽</span>
+                  <span style={{ ...s.value, color: "#0f0" }}>-{formatPrice(orderData.savings)} ₽</span>
                 </div>
               )}
             </div>
