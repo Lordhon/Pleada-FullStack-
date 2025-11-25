@@ -87,7 +87,7 @@ export default function AccountPage() {
         setError("Ошибка при загрузке данных");
         if (err.response?.status === 401) {
           localStorage.removeItem("token");
-          navigate("/login");
+          navigate("/");
         }
       } finally {
         setLoading(false);
@@ -180,6 +180,20 @@ export default function AccountPage() {
     if (!val.startsWith("+7")) val = "+7" + val.replace(/\D/g, "").slice(1);
     return "+7" + val.slice(2).replace(/\D/g, "");
   };
+
+  useEffect(() => {
+    if (!user) return;
+    const fullName =
+      user?.fio ||
+      user?.name ||
+      user?.first_name ||
+      user?.username ||
+      user?.company ||
+      "";
+    if (fullName) setEmailName(fullName);
+    if (user?.email) setEmailAddress(user.email);
+    if (user?.phone) setEmailPhone(formatPhone(user.phone));
+  }, [user]);
 
   const handleEmailPhoneChange = (e) => {
     setEmailPhone(formatPhone(e.target.value));
@@ -713,12 +727,12 @@ export const styles = (mobile) => ({
     lineHeight: 1,
   },
   container: { maxWidth: "1200px", margin: "0 auto", padding: mobile ? "20px 10px" : "40px 20px", width: "100%" },
-  contentWrapper: { display: "flex", flexDirection: "column", gap: "30px" },
+  contentWrapper: { display: "flex", flexDirection: "column", gap: mobile ? "20px" : "30px" },
   profileSection: { width: "100%" },
-  profileCard: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: mobile ? "20px" : "30px", border: "1px solid #444" },
+  profileCard: { backgroundColor: "#2a2a2a", borderRadius: "12px", padding: mobile ? "20px" : "30px", border: "1px solid #444", boxShadow: "0 4px 18px rgba(0,0,0,0.35)" },
   sectionTitle: { fontSize: mobile ? "20px" : "28px", marginBottom: "20px", color: "#ffcc00", margin: "0 0 20px 0" },
-  profileInfo: { display: "flex", flexDirection: "column", gap: "15px" },
-  infoRow: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "10px", borderBottom: "1px solid #444" },
+  profileInfo: { display: "flex", flexDirection: "column", gap: "12px" },
+  infoRow: { display: "flex", justifyContent: "space-between", alignItems: mobile ? "flex-start" : "center", flexDirection: mobile ? "column" : "row", gap: "4px", paddingBottom: "10px", borderBottom: "1px solid #444" },
   label: { fontWeight: "bold", color: "#ffcc00", fontSize: "14px" },
   value: { color: "#ccc", fontSize: "14px" },
   innsSection: { width: "100%" },
@@ -748,8 +762,8 @@ export const styles = (mobile) => ({
   innDetails: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", border: "1px solid #ffcc00", marginBottom: "20px" },
   innTitle: { margin: "0 0 10px 0", fontSize: "22px", color: "#ffcc00", fontWeight: "bold" },
   innSubtitle: { margin: 0, fontSize: "14px", color: "#999" },
-  ordersListCompact: { display: "flex", flexDirection: "column", gap: "10px" },
-  orderCardCompact: { backgroundColor: "#2a2a2a", borderRadius: "8px", padding: "15px", border: "1px solid #444", cursor: "pointer" },
+  ordersListCompact: { display: "flex", flexDirection: "column", gap: "12px" },
+  orderCardCompact: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "16px", border: "1px solid #444", cursor: "pointer", boxShadow: "0 3px 12px rgba(0,0,0,0.3)" },
   orderCardCompactHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" },
   orderNumberCompact: { margin: "0 0 5px 0", fontSize: "16px", color: "#ffcc00", fontWeight: "bold" },
   orderDateCompact: { margin: 0, fontSize: "12px", color: "#999" },

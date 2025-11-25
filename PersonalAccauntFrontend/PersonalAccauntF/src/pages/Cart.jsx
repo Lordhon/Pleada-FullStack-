@@ -157,6 +157,15 @@ export default function CartPage() {
     else handleAuthenticatedOrder();
   };
 
+  const closeQuickOrderModal = () => {
+    if (isLoading) return;
+    setShowQuickOrder(false);
+    setAwaitingCode(false);
+    setCode("");
+    setPhone("+7");
+    setOrderMessage("");
+  };
+
   const handleEmailNameChange = (e) => {
     setEmailName(e.target.value);
     setEmailError("");
@@ -181,7 +190,22 @@ export default function CartPage() {
     setEmailSuccess("");
   };
 
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const fullName =
+      user?.fio ||
+      user?.name ||
+      user?.first_name ||
+      user?.username ||
+      user?.company ||
+      "";
+    if (fullName) setEmailName(fullName);
+    if (user?.email) setEmailAddress(user.email);
+    if (user?.phone) setEmailPhone(formatPhone(user.phone));
+  }, [isAuthenticated, user]);
+
   const handleEmailSubmit = async () => {
+
     setEmailError("");
     setEmailSuccess("");
 
@@ -298,23 +322,20 @@ export default function CartPage() {
         const orderNumber = lineData?.idapp || lineData?.id || "—";
 
         localStorage.setItem(
-          "currentOrder",
-          JSON.stringify({ cart, totalCartSum, currentPriceLevel })
+          "orderSuccess",
+          JSON.stringify({
+            orderNumber,
+            totalSum: totalCartSum,
+            priceLevel: currentPriceLevel,
+            savings: totalSavings,
+          })
         );
 
-        setShowQuickOrder(false);
-        setAwaitingCode(false);
         setCart({});
         localStorage.removeItem("cart");
         notifyCartUpdate();
-        setOrderMessage(`✅ Заказ оформлен!\nНомер заказа: ${orderNumber}`);
-        setPhone("+7");
-        setCode("");
 
-        
-        setTimeout(() => {
-          setOrderMessage("");
-        }, 5000);
+        navigate("/order-success");
       }
 
     } catch (err) {
@@ -584,22 +605,41 @@ export default function CartPage() {
 
       
       {showQuickOrder && (
-        <div style={s.modal}>
-          <div style={s.modalContent}>
+        <div style={s.quickOrderOverlay} onClick={closeQuickOrderModal}>
+          <div style={s.quickOrderModal} onClick={(e) => e.stopPropagation()}>
+            <button
+              style={s.modalClose}
+              onClick={closeQuickOrderModal}
+              disabled={isLoading}
+            >
+              ×
+            </button>
             <h2 style={s.modalTitle}>Быстрый заказ</h2>
             {!awaitingCode ? (
               <>
                 <label style={s.label}>Ваш телефон:</label>
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7 (XXX) XXX-XX-XX" style={s.modalInput} />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 (XXX) XXX-XX-XX"
+                  style={s.modalInput}
+                />
                 <p style={s.helperText}>На номер будет отправлен код подтверждения</p>
               </>
             ) : (
               <>
                 <label style={s.label}>Код подтверждения:</label>
-                <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Введите код" style={s.modalInput} />
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Введите код"
+                  style={s.modalInput}
+                />
               </>
             )}
-            <div style={s.modalButtons}>
+            <div style={s.quickOrderButtons}>
               <button
                 onClick={handleQuickOrder}
                 disabled={isLoading}
@@ -608,20 +648,15 @@ export default function CartPage() {
                 {isLoading ? "Загрузка..." : awaitingCode ? "Подтвердить" : "Отправить код"}
               </button>
               <button
-                onClick={() => {
-                  setShowQuickOrder(false);
-                  setAwaitingCode(false);
-                  setCode("");
-                  setPhone("+7");
-                  setOrderMessage("");
-                }}
+                onClick={closeQuickOrderModal}
+                disabled={isLoading}
                 style={s.modalBtnCancel}
               >
                 Отмена
               </button>
             </div>
             {orderMessage && (
-              <div style={{ marginTop: "15px", color: "#0f0", fontSize: "14px", textAlign: "center", whiteSpace: "pre-line" }}>
+              <div style={s.quickOrderMessage}>
                 {orderMessage}
               </div>
             )}
@@ -848,12 +883,12 @@ const styles = (mobile) => ({
   navButton: {
     backgroundColor: "#ffcc00",
     border: "none",
-    padding: "8px 16px",
+    padding: mobile ? "8px 12px" : "8px 16px",
     borderRadius: "5px",
     cursor: "pointer",
     fontWeight: "bold",
     color: "#1c1c1c",
-    fontSize: "14px",
+    fontSize: mobile ? "12px" : "14px",
     whiteSpace: "nowrap",
   },
   cartBadge: {
@@ -896,13 +931,14 @@ const styles = (mobile) => ({
   container: {
     maxWidth: "1400px",
     margin: "0 auto",
-    padding: "0 20px",
+    padding: mobile ? "0 12px" : "0 20px",
   },
   title: {
-    fontSize: "32px",
-    margin: "40px 0 30px",
+    fontSize: mobile ? "24px" : "32px",
+    margin: mobile ? "24px 0 20px" : "40px 0 30px",
     color: "#ffcc00",
     fontWeight: "bold",
+    textAlign: mobile ? "center" : "left",
   },
   empty: {
     fontSize: "18px",
@@ -917,6 +953,7 @@ const styles = (mobile) => ({
     color: "white",
     borderRadius: "8px",
     overflow: "hidden",
+    fontSize: mobile ? "12px" : "14px",
   },
   th: {
     padding: "15px 12px",
@@ -1005,13 +1042,27 @@ const styles = (mobile) => ({
     justifyContent: "center",
     zIndex: 1000,
   },
-  modalContent: {
+  quickOrderOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: "20px",
+  },
+  quickOrderModal: {
     backgroundColor: "#2a2a2a",
-    padding: "30px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
-    width: "90%",
-    maxWidth: "400px",
+    padding: mobile ? "20px" : "30px",
+    borderRadius: "12px",
+    boxShadow: "0 6px 20px rgba(0, 0, 0, 0.55)",
+    width: "100%",
+    maxWidth: "420px",
+    position: "relative",
   },
   modalTitle: {
     margin: "0 0 20px 0",
@@ -1052,6 +1103,13 @@ const styles = (mobile) => ({
     gap: "10px",
     justifyContent: "space-between",
   },
+  quickOrderButtons: {
+    display: "flex",
+    gap: "10px",
+    flexDirection: mobile ? "column" : "row",
+    justifyContent: "space-between",
+    marginTop: "10px",
+  },
   modalBtn: {
     flex: 1,
     backgroundColor: "#ffcc00",
@@ -1078,6 +1136,13 @@ const styles = (mobile) => ({
     cursor: "pointer",
     fontWeight: "bold",
     fontSize: "14px",
+  },
+  quickOrderMessage: {
+    marginTop: "15px",
+    color: "#0f0",
+    fontSize: "14px",
+    textAlign: "center",
+    whiteSpace: "pre-line",
   },
   modalSubmitBtn: {
     flex: 1,

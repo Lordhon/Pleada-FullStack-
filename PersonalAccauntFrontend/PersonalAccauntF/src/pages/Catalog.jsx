@@ -186,6 +186,20 @@ export default function CatalogPage() {
     setEmailSuccess("");
   };
 
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const fullName =
+      user?.fio ||
+      user?.name ||
+      user?.first_name ||
+      user?.username ||
+      user?.company ||
+      "";
+    if (fullName) setEmailName(fullName);
+    if (user?.email) setEmailAddress(user.email);
+    if (user?.phone) setEmailPhone(formatPhone(user.phone));
+  }, [isAuthenticated, user]);
+
   const handleEmailSubmit = async () => {
     setEmailError("");
     setEmailSuccess("");
@@ -507,109 +521,196 @@ export default function CatalogPage() {
           Цены действительны на условиях 100% предоплаты
         </div>
         <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
-        <div style={s.tableContainer}>
-          <table style={s.table}>
-            <thead>
-              <tr style={s.tableHeaderRow}>
-                <th style={s.tableHeader}>№</th>
-                <th style={s.tableHeader}>Артикул</th>
-                <th style={s.tableHeader}>Название</th>
-                <th style={s.tableHeader}>
-                  <div style={s.priceHeaderText}>Крупный опт</div>
-                  <div style={s.priceSubText}>от 500 000 ₽</div>
-                </th>
-                <th style={s.tableHeader}>
-                  <div style={s.priceHeaderText}>Средний опт</div>
-                  <div style={s.priceSubText}>от 200 000 ₽</div>
-                </th>
-                <th style={s.tableHeader}>
-                  <div style={s.priceHeaderText}>Мелкий опт</div>
-                  <div style={s.priceSubText}>от 100 000 ₽</div>
-                </th>
-                <th style={s.tableHeader}>
-                  <div style={s.priceHeaderText}>Розница</div>
-                  <div style={s.priceSubText}>без ограничений</div>
-                </th>
-                <th style={s.tableHeader}>Кол-во</th>
-                <th style={s.tableHeader}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.length > 0 ? (
-                filteredItems.map((item, index) => (
-                  <tr
-                    key={item.art}
-                    ref={(el) => (itemRefs.current[item.art] = el)}
-                    style={{
-                      ...s.tableRow,
-                      backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",
-                    }}
-                  >
-                    <td style={{ ...s.tableCell, textAlign: "center" }}>{index + 1}</td>
-                    <td style={s.tableCell}>{item.art}</td>
-                    <td style={s.tableCell}>{item.name}</td>
 
-                    {["price", "price1", "price2", "price3"].map((type) => (
-                      <td style={s.tableCell} key={type}>
-                        <div
+        {isMobile ? (
+          filteredItems.length > 0 ? (
+            <div style={s.mobileCardsContainer}>
+              {filteredItems.map((item, index) => (
+                <div
+                  key={item.art}
+                  ref={(el) => (itemRefs.current[item.art] = el)}
+                  style={s.mobileCard}
+                >
+                  <div style={s.mobileCardHeader}>
+                    <span style={s.mobileCardIndex}>№ {index + 1}</span>
+                    <span style={s.mobileCardArt}>{item.art}</span>
+                  </div>
+                  <div style={s.mobileCardName}>{item.name}</div>
+
+                  <div style={s.mobilePriceGrid}>
+                    {[
+                      { label: "Крупный опт", type: "price" },
+                      { label: "Средний опт", type: "price1" },
+                      { label: "Мелкий опт", type: "price2" },
+                      { label: "Розница", type: "price3" },
+                    ].map(({ label, type }) => (
+                      <div key={type} style={s.mobilePriceRow}>
+                        <span style={s.mobilePriceLabel}>{label}</span>
+                        <span
                           style={{
-                            fontWeight: currentLevelKey === type ? "bold" : "normal",
-                            color: currentLevelKey === type ? "#ffcc00" : "#eee",
+                            ...s.mobilePriceValue,
+                            color: currentLevelKey === type ? "#ffcc00" : "#fff",
                           }}
                         >
                           {formatPrice(item[type])} ₽
-                        </div>
-                        {currentLevelKey === type && nextLevelRemaining > 0 && (
-                          <div style={s.nextLevelHint}>
-                            До следующего уровня: {formatPrice(nextLevelRemaining)} ₽
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {nextLevelRemaining > 0 && (
+                    <div style={s.mobileHint}>
+                      До следующей скидки: {formatPrice(nextLevelRemaining)} ₽
+                    </div>
+                  )}
+
+                  <div style={s.mobileStockRow}>
+                    <span>На складе: {item.kl} шт</span>
+                    {isInCart(item.art) && (
+                      <span style={s.mobileInCart}>В корзине</span>
+                    )}
+                  </div>
+
+                  <div style={s.mobileActions}>
+                    {!isInCart(item.art) ? (
+                      <button
+                        style={s.mobileAddButton}
+                        onClick={() => addToCart(item)}
+                        disabled={item.kl <= 0}
+                      >
+                        {item.kl > 0 ? "Добавить" : "Нет в наличии"}
+                      </button>
+                    ) : (
+                      <>
+                        <input
+                          type="number"
+                          value={cart[item.art].quantity}
+                          onChange={(e) => updateQuantity(item.art, e.target.value)}
+                          min="1"
+                          max={item.kl}
+                          style={s.mobileQuantityInput}
+                        />
+                        <button
+                          style={s.mobileRemoveButton}
+                          onClick={() => removeFromCart(item.art)}
+                          title="Удалить"
+                        >
+                          Удалить
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={s.noDataCell}>Нет товаров</div>
+          )
+        ) : (
+          <div style={s.tableContainer}>
+            <table style={s.table}>
+              <thead>
+                <tr style={s.tableHeaderRow}>
+                  <th style={s.tableHeader}>№</th>
+                  <th style={s.tableHeader}>Артикул</th>
+                  <th style={s.tableHeader}>Название</th>
+                  <th style={s.tableHeader}>
+                    <div style={s.priceHeaderText}>Крупный опт</div>
+                    <div style={s.priceSubText}>от 500 000 ₽</div>
+                  </th>
+                  <th style={s.tableHeader}>
+                    <div style={s.priceHeaderText}>Средний опт</div>
+                    <div style={s.priceSubText}>от 200 000 ₽</div>
+                  </th>
+                  <th style={s.tableHeader}>
+                    <div style={s.priceHeaderText}>Мелкий опт</div>
+                    <div style={s.priceSubText}>от 100 000 ₽</div>
+                  </th>
+                  <th style={s.tableHeader}>
+                    <div style={s.priceHeaderText}>Розница</div>
+                    <div style={s.priceSubText}>без ограничений</div>
+                  </th>
+                  <th style={s.tableHeader}>Кол-во</th>
+                  <th style={s.tableHeader}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((item, index) => (
+                    <tr
+                      key={item.art}
+                      ref={(el) => (itemRefs.current[item.art] = el)}
+                      style={{
+                        ...s.tableRow,
+                        backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",
+                      }}
+                    >
+                      <td style={{ ...s.tableCell, textAlign: "center" }}>{index + 1}</td>
+                      <td style={s.tableCell}>{item.art}</td>
+                      <td style={s.tableCell}>{item.name}</td>
+
+                      {["price", "price1", "price2", "price3"].map((type) => (
+                        <td style={s.tableCell} key={type}>
+                          <div
+                            style={{
+                              fontWeight: currentLevelKey === type ? "bold" : "normal",
+                              color: currentLevelKey === type ? "#ffcc00" : "#eee",
+                            }}
+                          >
+                            {formatPrice(item[type])} ₽
+                          </div>
+                          {currentLevelKey === type && nextLevelRemaining > 0 && (
+                            <div style={s.nextLevelHint}>
+                              До следующего уровня: {formatPrice(nextLevelRemaining)} ₽
+                            </div>
+                          )}
+                        </td>
+                      ))}
+
+                      <td style={s.tableCell}>{item.kl}</td>
+
+                      <td style={s.actionCell}>
+                        {!isInCart(item.art) ? (
+                          <button
+                            style={s.addButton}
+                            onClick={() => addToCart(item)}
+                            disabled={item.kl <= 0}
+                          >
+                            В корзину
+                          </button>
+                        ) : (
+                          <div style={s.quantityContainer}>
+                            <input
+                              type="number"
+                              value={cart[item.art].quantity}
+                              onChange={(e) => updateQuantity(item.art, e.target.value)}
+                              min="1"
+                              max={item.kl}
+                              style={s.quantityInput}
+                            />
+                            <button
+                              style={s.removeButton}
+                              onClick={() => removeFromCart(item.art)}
+                              title="Удалить"
+                            >
+                              ×
+                            </button>
                           </div>
                         )}
                       </td>
-                    ))}
-
-                    <td style={s.tableCell}>{item.kl}</td>
-
-                    <td style={s.actionCell}>
-                      {!isInCart(item.art) ? (
-                        <button
-                          style={s.addButton}
-                          onClick={() => addToCart(item)}
-                          disabled={item.kl <= 0}
-                        >
-                          В корзину
-                        </button>
-                      ) : (
-                        <div style={s.quantityContainer}>
-                          <input
-                            type="number"
-                            value={cart[item.art].quantity}
-                            onChange={(e) => updateQuantity(item.art, e.target.value)}
-                            min="1"
-                            max={item.kl}
-                            style={s.quantityInput}
-                          />
-                          <button
-                            style={s.removeButton}
-                            onClick={() => removeFromCart(item.art)}
-                            title="Удалить"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="9" style={s.noDataCell}>
+                      Нет товаров
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="9" style={s.noDataCell}>
-                    Нет товаров
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section style={s.productsSection}>
@@ -963,6 +1064,108 @@ const styles = (mobile) => ({
     borderCollapse: "collapse",
     backgroundColor: "#2a2a2a",
     fontSize: mobile ? "11px" : "13px",
+  },
+  mobileCardsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
+  },
+  mobileCard: {
+    backgroundColor: "#2a2a2a",
+    borderRadius: "14px",
+    padding: "18px",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    border: "1px solid #3a3a3a",
+  },
+  mobileCardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: "13px",
+    color: "#ccc",
+  },
+  mobileCardIndex: {
+    fontWeight: "bold",
+    color: "#ffcc00",
+  },
+  mobileCardArt: {
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  mobileCardName: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#fff",
+    lineHeight: 1.3,
+  },
+  mobilePriceGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: "8px",
+    backgroundColor: "#1f1f1f",
+    borderRadius: "10px",
+    padding: "12px",
+  },
+  mobilePriceRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "13px",
+  },
+  mobilePriceLabel: {
+    color: "#bbb",
+  },
+  mobilePriceValue: {
+    fontWeight: "bold",
+  },
+  mobileHint: {
+    fontSize: "12px",
+    color: "#66ff99",
+  },
+  mobileStockRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "12px",
+    color: "#ccc",
+  },
+  mobileInCart: {
+    color: "#ffcc00",
+    fontWeight: "bold",
+  },
+  mobileActions: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "10px",
+  },
+  mobileAddButton: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    borderRadius: "6px",
+    padding: "10px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    color: "#1c1c1c",
+  },
+  mobileQuantityInput: {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "6px",
+    border: "1px solid #555",
+    backgroundColor: "#1c1c1c",
+    color: "#fff",
+    textAlign: "center",
+  },
+  mobileRemoveButton: {
+    backgroundColor: "#ff5555",
+    border: "none",
+    borderRadius: "6px",
+    padding: "8px",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer",
   },
   tableHeaderRow: {
     backgroundColor: "#ffcc00",

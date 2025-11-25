@@ -229,6 +229,20 @@ export default function MainPage() {
 
   const cartTotal = useCartTotals();
 
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const fullName =
+      user?.fio ||
+      user?.name ||
+      user?.first_name ||
+      user?.username ||
+      user?.company ||
+      "";
+    if (fullName) setEmailName(fullName);
+    if (user?.email) setEmailAddress(user.email);
+    if (user?.phone) setEmailPhone(formatPhone(user.phone));
+  }, [isAuthenticated, user]);
+
   const handleEmailSubmit = async () => {
     setEmailError("");
     setEmailSuccess("");
@@ -544,13 +558,13 @@ export default function MainPage() {
 
 export const styles = (mobile) => ({
   page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
-  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "10px", position: "relative" },
+  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "12px 14px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "12px", position: "relative", boxShadow: mobile ? "0 4px 16px rgba(0,0,0,0.35)" : "none" },
   headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
   logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
   logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
   logoText: { display: "flex", flexDirection: "column" },
   logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
-  headerRight: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "20px", flexWrap: "wrap", justifyContent: "center" },
+  headerRight: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "20px", flexWrap: "wrap", justifyContent: mobile ? "space-between" : "center", width: mobile ? "100%" : "auto" },
   
   phoneSection: { display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", color: "white", fontSize: "14px" },
   phoneContent: { display: "flex", flexDirection: "column", alignItems: "flex-end" },
@@ -592,13 +606,13 @@ export const styles = (mobile) => ({
   },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
-  searchContainer: { display: "flex", justifyContent: "center", padding: "15px 10px", backgroundColor: "#222" },
-  searchInput: { width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: "14px" },
+  searchContainer: { display: "flex", justifyContent: "center", padding: mobile ? "14px 16px" : "15px 10px", backgroundColor: "#222", boxShadow: mobile ? "0 4px 18px rgba(0,0,0,0.25)" : "none" },
+  searchInput: { width: "100%", padding: mobile ? "12px 14px" : "8px 12px", borderRadius: "10px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: mobile ? "14px" : "14px", minHeight: mobile ? "46px" : "auto" },
   searchMessage: { color: "#ffcc00", marginTop: "5px", fontSize: "14px", textAlign: "center" },
   suggestionsList: { listStyle: "none", padding: "5px", margin: "5px 0 0 0", backgroundColor: "#333", borderRadius: "5px", maxHeight: "200px", overflowY: "auto" },
   suggestionItem: { padding: "8px", cursor: "pointer", borderBottom: "1px solid #444", color: "white" },
-  hero: { textAlign: "center", marginBottom: "60px" },
-  heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "30px 10px" : "60px 20px 40px", position: "relative" },
+  hero: { textAlign: "center", marginBottom: mobile ? "40px" : "60px" },
+  heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "24px 14px" : "60px 20px 40px", position: "relative", backgroundColor: mobile ? "#242424" : "transparent", borderRadius: mobile ? "16px" : "0" },
   heroTitle: { fontSize: mobile ? "24px" : "40px", marginBottom: "10px" },
   heroText: { color: "#ccc", fontSize: mobile ? "14px" : "18px", marginBottom: "20px" },
   buttons: { display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "center", gap: "10px", marginBottom: "30px" },
@@ -609,10 +623,10 @@ export const styles = (mobile) => ({
   navButtonRight: { position: "absolute", top: "50%", right: "10px", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.4)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", cursor: "pointer", fontSize: "20px" },
   dots: { position: "absolute", bottom: "15px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px" },
   dot: { width: "12px", height: "12px", borderRadius: "50%", cursor: "pointer", transition: "background-color 0.3s" },
-  catalogSection: { display: "flex", justifyContent: "center", width: "100%", marginBottom: "60px" },
+  catalogSection: { display: "flex", justifyContent: "center", width: "100%", padding: mobile ? "20px 14px" : "0", marginBottom: mobile ? "40px" : "60px" },
   catalog: { width: "1200px", maxWidth: "95%" },
-  catalogTitle: { fontSize: "28px", marginBottom: "20px", textAlign: "left" },
-  catalogGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" },
+  catalogTitle: { fontSize: mobile ? "22px" : "28px", marginBottom: "20px", textAlign: "left" },
+  catalogGrid: { display: "grid", gridTemplateColumns: mobile ? "repeat(2, minmax(140px, 1fr))" : "repeat(auto-fit, minmax(200px, 1fr))", gap: mobile ? "12px" : "20px" },
   catalogItem: { backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", cursor: "pointer", aspectRatio: "16/9" },
   catalogImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "10px" },
   productsSection: { display: "flex", justifyContent: "center", padding: "60px 20px", backgroundColor: "#1c1c1c", width: "100%" },
