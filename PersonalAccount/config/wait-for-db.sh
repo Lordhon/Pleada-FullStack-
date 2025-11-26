@@ -10,7 +10,7 @@ while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
 done
 echo "Database is up!"
 
-python manage.py makemigrations
+
 python manage.py migrate
 
 
