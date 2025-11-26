@@ -16,15 +16,5 @@ class Migration(migrations.Migration):
             model_name='user',
             name='first_name',
             field=models.CharField(blank=True, max_length=100, null=True),
-        ),
-        migrations.AlterField(
-            model_name='user',
-            name='inn',
-            field=models.CharField(blank=True, max_length=12, null=True),
-        ),
-        migrations.AlterField(
-            model_name='userprofile',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-        ),
+        )
     ]
