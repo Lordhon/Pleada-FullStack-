@@ -109,6 +109,7 @@ export default function CatalogPage() {
         return res.json();
       })
       .then((data) => {
+        // бэкенд уже отдаёт только нужные товары, здесь ничего не фильтруем
         setItems(data);
         setFilteredItems(data);
       })

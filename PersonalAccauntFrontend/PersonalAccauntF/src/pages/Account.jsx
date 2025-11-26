@@ -34,6 +34,9 @@ export default function AccountPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [selectedPriceGroups, setSelectedPriceGroups] = useState([]);
+  const [priceError, setPriceError] = useState("");
   const cartTotal = useCartTotals();
 
   useEffect(() => {
@@ -252,6 +255,38 @@ export default function AccountPage() {
     }
   };
 
+  const priceGroups = [
+    { id: 30, key: "jcb", label: "JCB" },
+    { id: 43, key: "terex", label: "Terex" },
+    { id: 40, key: "komatsu", label: "Komatsu" },
+    { id: 41, key: "case", label: "CASE" },
+    { id: 38, key: "caterpillar", label: "Caterpillar" },
+    { id: 44, key: "mst", label: "MST" },
+    { id: 32, key: "bobcat", label: "Bobcat" },
+    { id: 42, key: "volvo", label: "Volvo" },
+    { id: 25, key: "hidromek", label: "Hidromek" },
+    { id: 15, key: "mksm", label: "MKSM" },
+    { id: 19, key: "lokust", label: "Lokust" },
+  ];
+
+  const togglePriceGroup = (id) => {
+    setPriceError("");
+    setSelectedPriceGroups((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
+  };
+
+  const handleDownloadPrices = () => {
+    if (selectedPriceGroups.length === 0) {
+      setPriceError("Выберите хотя бы одну компанию");
+      return;
+    }
+    const groupsParam = selectedPriceGroups.join(",");
+    const url = `https://zpnn.ru/generate-price?groups=${groupsParam}`;
+    window.open(url, "_blank");
+    setShowPriceModal(false);
+  };
+
   const s = styles(isMobile);
 
   if (loading) {
@@ -349,6 +384,14 @@ export default function AccountPage() {
                   <span style={s.label}>Телефон:</span>
                   <span style={s.value}>{user?.phone || "Не указан"}</span>
                 </div>
+              </div>
+              <div style={s.profileActions}>
+                <button
+                  style={s.downloadPricesButton}
+                  onClick={() => setShowPriceModal(true)}
+                >
+                  Скачать цены
+                </button>
               </div>
             </div>
           </section>
@@ -684,6 +727,48 @@ export default function AccountPage() {
           </div>
         </div>
       )}
+
+      {showPriceModal && (
+        <div style={s.modalOverlay} onClick={() => setShowPriceModal(false)}>
+          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 style={s.modalTitle}>Скачать цены</h2>
+            <p style={s.modalText}>
+              Выберите компании, для которых нужно сформировать прайс-лист
+            </p>
+
+            {priceError && <div style={s.errorMessage}>{priceError}</div>}
+
+            <div style={s.priceGroupsList}>
+              {priceGroups.map((group) => (
+                <label key={group.id} style={s.priceGroupItem}>
+                  <input
+                    type="checkbox"
+                    checked={selectedPriceGroups.includes(group.id)}
+                    onChange={() => togglePriceGroup(group.id)}
+                    style={s.priceCheckbox}
+                  />
+                  <span style={s.priceGroupName}>{group.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div style={s.modalButtons}>
+              <button
+                style={s.modalSend}
+                onClick={handleDownloadPrices}
+              >
+                Скачать
+              </button>
+              <button
+                style={s.modalCancel}
+                onClick={() => setShowPriceModal(false)}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -739,6 +824,8 @@ export const styles = (mobile) => ({
   innsSectionHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: mobile ? "wrap" : "nowrap", gap: "10px" },
   addButton: { backgroundColor: "#ffcc00", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", fontSize: "14px" },
   addInnForm: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", marginBottom: "20px", display: "flex", gap: "10px", flexWrap: mobile ? "wrap" : "nowrap" },
+  profileActions: { marginTop: "16px", display: "flex", justifyContent: "flex-start" },
+  downloadPricesButton: { backgroundColor: "#4caf50", border: "none", padding: "10px 18px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
   input: { flex: 1, minWidth: "200px", padding: "10px 15px", borderRadius: "5px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "#fff", fontSize: "14px", outline: "none" },
   submitButton: { backgroundColor: "#4caf50", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
   cancelButton: { backgroundColor: "#666", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
@@ -799,4 +886,9 @@ export const styles = (mobile) => ({
   modalCancel: { flex: 1, backgroundColor: "#444", color: "white", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "14px" },
   modalClose: { position: "absolute", top: "10px", right: "10px", backgroundColor: "transparent", border: "none", color: "#ffcc00", fontSize: "28px", cursor: "pointer", fontWeight: "bold" },
   successMessage: { color: "limegreen", fontSize: "14px", marginBottom: "20px" },
+  priceGroupsList: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px", marginTop: "10px" },
+  priceGroupItem: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", padding: "8px 10px", borderRadius: "6px", backgroundColor: "#1c1c1c" },
+  priceCheckbox: { marginRight: "8px" },
+  priceGroupName: { color: "#fff", fontSize: "14px", fontWeight: "500", flex: 1 },
+  priceGroupId: { color: "#999", fontSize: "12px" },
 });

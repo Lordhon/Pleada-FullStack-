@@ -31,12 +31,13 @@ class StorageView(APIView):
     def get(self, request , slug):
         if slug not in ALLOWED_COMPANIES: 
             return Response({"error": "Нельзя"}, status=status.HTTP_403_FORBIDDEN)
-        try :
+        try:
             company = ItemCompany.objects.get(slug=slug)
         except ItemCompany.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        items = StorageItem.objects.filter(gr=company)
+        
+        items = StorageItem.objects.filter(gr=company, publ=True)
         serializer = StorageItemSerializer(items, many=True)
         return Response(serializer.data)
 
@@ -138,7 +139,11 @@ class SearchItem(APIView):
     def get(self , request):
         q = request.query_params.get("q" , "").strip()
 
-        item = StorageItem.objects.select_related("gr").filter(Q(name__icontains=q) | Q(art__icontains=q) , gr__slug__in=ALLOWED_COMPANIES).first()
+        item = StorageItem.objects.select_related("gr").filter(
+            Q(name__icontains=q) | Q(art__icontains=q),
+            gr__slug__in=ALLOWED_COMPANIES,
+            publ=True,
+        ).first()
         logger.info(q)
 
         if not item:
@@ -149,7 +154,11 @@ class SearchItem(APIView):
 class HelpSearchItem(APIView):
     def get(self  , request ):
         q = request.query_params.get("q" ,"").strip()
-        items = StorageItem.objects.filter(Q(art__icontains=q) | Q(name__icontains=q) ,  gr__slug__in=ALLOWED_COMPANIES)
+        items = StorageItem.objects.filter(
+            Q(art__icontains=q) | Q(name__icontains=q),
+            gr__slug__in=ALLOWED_COMPANIES,
+            publ=True,
+        )
         if not items:
             return Response({"error": "item not found"} , status=404)
         serializer = SearchItemSerializer(items  , many=True)

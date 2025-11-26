@@ -21,11 +21,24 @@ def fetch_and_update_storage():
     data_company = response.json().get("list_gr", [])
     data_items = response.json().get("list", [])
 
-
+   
+    group_publ_map = {}
     for item in data_company:
-        id = item["id"]
+        company_id = item["id"]
         name = item["nm"]
-        obj , created = ItemCompany.objects.get_or_create(id=id , name=name)
+        publ = item.get("publ")
+
+        obj, created = ItemCompany.objects.get_or_create(
+            id=company_id,
+            defaults={"name": name},
+        )
+
+        
+        if not created and obj.name != name:
+            obj.name = name
+            obj.save()
+
+        group_publ_map[company_id] = bool(publ)
 
 
     for item in data_items:
@@ -38,7 +51,20 @@ def fetch_and_update_storage():
         name = item["nm"]
         gr = item["gr"]
         gr_obj = ItemCompany.objects.get(id=gr)
-        obj, created = StorageItem.objects.get_or_create(art=art,  defaults={'kl': kl,'price': price, 'price1': price1 , 'price2': price2 , 'price3':price3,'name': name,'gr': gr_obj})
+        is_published = bool(group_publ_map.get(gr, False))
+        obj, created = StorageItem.objects.get_or_create(
+            art=art,
+            defaults={
+                'kl': kl,
+                'price': price,
+                'price1': price1,
+                'price2': price2,
+                'price3': price3,
+                'name': name,
+                'gr': gr_obj,
+                'publ': is_published,
+            },
+        )
 
         updated = False
 
@@ -72,8 +98,11 @@ def fetch_and_update_storage():
                 updated = True
 
             if obj.gr != gr_obj:
-
                 obj.gr = gr_obj
+                updated = True
+
+            if obj.publ != is_published:
+                obj.publ = is_published
                 updated = True
 
             if updated:
