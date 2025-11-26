@@ -17,11 +17,6 @@ class Migration(migrations.Migration):
             name='first_name',
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
-        migrations.AddField(
-            model_name='userprofile',
-            name='inn',
-            field=models.CharField(blank=True, max_length=12, null=True),
-        ),
         migrations.AlterField(
             model_name='user',
             name='inn',
