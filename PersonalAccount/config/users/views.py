@@ -184,7 +184,7 @@ class SendEmailApi(APIView):
                 "Content-Type": "application/json",
                 "KEY": getkey()
             }
-            
+            logger.info(obj_param)
             r = requests.get(f'https://parus.ohelp.ru/api_lk?f=callback&obj={obj_param}' , headers=headers)
 
             logger.info(r.json())
@@ -224,3 +224,19 @@ class DeleteINN(APIView):
             return Response({'code':'200' } , status=200)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+
+class Rename(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        name = request.data.get("name")
+        try:
+            user.first_name = name
+            user.save(update_fields=["first_name"])
+            return Response({"status": "ok", "first_name": user.first_name})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        

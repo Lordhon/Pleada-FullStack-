@@ -37,6 +37,11 @@ export default function AccountPage() {
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [selectedPriceGroups, setSelectedPriceGroups] = useState([]);
   const [priceError, setPriceError] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [nameSuccess, setNameSuccess] = useState("");
   const cartTotal = useCartTotals();
 
   useEffect(() => {
@@ -196,6 +201,10 @@ export default function AccountPage() {
     if (fullName) setEmailName(fullName);
     if (user?.email) setEmailAddress(user.email);
     if (user?.phone) setEmailPhone(formatPhone(user.phone));
+    setNameInput(user?.first_name || "");
+    setNameSuccess("");
+    setNameError("");
+    setIsEditingName(false);
   }, [user]);
 
   const handleEmailPhoneChange = (e) => {
@@ -238,6 +247,7 @@ export default function AccountPage() {
         email: emailAddress,
         phone: emailPhone,
         message: emailMessage,
+        domen: location.origin,
       });
 
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
@@ -252,6 +262,60 @@ export default function AccountPage() {
       setEmailError("Ошибка при отправке письма. Попробуйте еще раз.");
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  const handleStartEditName = () => {
+    setNameInput(user?.first_name || "");
+    setNameError("");
+    setNameSuccess("");
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setNameInput(user?.first_name || "");
+    setNameError("");
+    setNameSuccess("");
+  };
+
+  const handleSaveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) {
+      setNameError("Имя не может быть пустым");
+      setNameSuccess("");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setNameError("Требуется авторизация");
+      setNameSuccess("");
+      return;
+    }
+
+    setNameSaving(true);
+    setNameError("");
+    setNameSuccess("");
+    try {
+      await axios.post(
+        `${window.location.origin}/api/Rename-name/`,
+        { name: trimmed },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setUser((prev) => (prev ? { ...prev, first_name: trimmed } : prev));
+      setNameSuccess("Имя успешно обновлено");
+      setIsEditingName(false);
+    } catch (err) {
+      console.error("Ошибка обновления имени:", err);
+      setNameError(
+        err.response?.data?.error ||
+          "Не удалось обновить имя. Попробуйте ещё раз."
+      );
+    } finally {
+      setNameSaving(false);
     }
   };
 
@@ -384,6 +448,68 @@ export default function AccountPage() {
                   <span style={s.label}>Телефон:</span>
                   <span style={s.value}>{user?.phone || "Не указан"}</span>
                 </div>
+                <div style={s.infoRow}>
+                  <span style={s.label}>Имя:</span>
+                  {!isEditingName ? (
+                    <div style={s.nameValueContainer}>
+                      <span style={s.value}>{user?.first_name || "Не указано"}</span>
+                      <button
+                        style={s.editIconButton}
+                        onClick={handleStartEditName}
+                        title="Изменить"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={s.nameEditContainer}>
+                      <input
+                        type="text"
+                        value={nameInput}
+                        onChange={(e) => {
+                          setNameInput(e.target.value);
+                          setNameError("");
+                          setNameSuccess("");
+                        }}
+                        style={s.nameEditInput}
+                        placeholder="Введите имя"
+                        disabled={nameSaving}
+                      />
+                      <div style={s.nameActions}>
+                        <button
+                          style={s.nameSaveButton}
+                          onClick={handleSaveName}
+                          disabled={nameSaving}
+                        >
+                          {nameSaving ? "Сохранение..." : "Сохранить"}
+                        </button>
+                        <button
+                          style={s.nameCancelButton}
+                          onClick={handleCancelEditName}
+                          disabled={nameSaving}
+                        >
+                          Отмена
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {nameError && <div style={s.nameErrorText}>{nameError}</div>}
+                {nameSuccess && (
+                  <div style={s.nameSuccessText}>{nameSuccess}</div>
+                )}
               </div>
               <div style={s.profileActions}>
                 <button
@@ -519,7 +645,9 @@ export default function AccountPage() {
                                 <h4 style={s.orderNumberCompact}>
                                   Заказ #{order.num}
                                 </h4>
-                                <p style={s.orderDateCompact}>{order.dt}</p>
+                                <p style={s.orderDateCompact}>
+                                  {formatOrderDate(getOrderDate(order))}
+                                </p>
                               </div>
                               <div
                                 style={{
@@ -527,7 +655,7 @@ export default function AccountPage() {
                                   backgroundColor: getStatusColor(order.st),
                                 }}
                               >
-                                {order.st}
+                                {order.nst || order.st || "Не указан"}
                               </div>
                             </div>
                             <div style={s.orderCardCompactFooter}>
@@ -581,7 +709,9 @@ export default function AccountPage() {
                       <h2 style={s.orderDetailNumber}>
                         Заказ #{selectedOrder.num}
                       </h2>
-                      <p style={s.orderDetailDate}>{selectedOrder.dt}</p>
+                      <p style={s.orderDetailDate}>
+                        {formatOrderDate(getOrderDate(selectedOrder))}
+                      </p>
                     </div>
                     <div
                       style={{
@@ -589,7 +719,7 @@ export default function AccountPage() {
                         backgroundColor: getStatusColor(selectedOrder.st),
                       }}
                     >
-                      {selectedOrder.st}
+                      {selectedOrder.nst || selectedOrder.st || "Не указан"}
                     </div>
                   </div>
 
@@ -602,12 +732,39 @@ export default function AccountPage() {
                       <span style={s.metaLabel}>ИНН:</span>
                       <span style={s.metaValue}>{selectedOrder.binn}</span>
                     </div>
+                    {selectedOrder.gpdt && (
+                      <div style={s.metaItem}>
+                        <span style={s.metaLabel}>Дата готовности:</span>
+                        <span style={s.metaValue}>
+                          {formatOrderDate(selectedOrder.gpdt)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.pldt && selectedOrder.pldt !== selectedOrder.gpdt && (
+                      <div style={s.metaItem}>
+                        <span style={s.metaLabel}>Планируемая дата:</span>
+                        <span style={s.metaValue}>
+                          {formatOrderDate(selectedOrder.pldt)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.dt && (
+                      <div style={s.metaItem}>
+                        <span style={s.metaLabel}>Дата создания:</span>
+                        <span style={s.metaValue}>
+                          {selectedOrder.dt.includes(" ") 
+                            ? selectedOrder.dt 
+                            : formatOrderDate(selectedOrder.dt)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div style={s.itemsList}>
                     <table style={s.table}>
                       <thead>
                         <tr style={s.tableHeader}>
+                          <th style={s.tableCell}>№</th>
                           <th style={s.tableCell}>Название</th>
                           <th style={s.tableCell}>Артикул</th>
                           <th style={s.tableCell}>Кол-во</th>
@@ -621,6 +778,7 @@ export default function AccountPage() {
                           const total = priceValue * item.kol;
                           return (
                             <tr key={itemIndex} style={s.tableRow}>
+                              <td style={{ ...s.tableCell, textAlign: "center" }}>{itemIndex + 1}</td>
                               <td style={s.tableCell}>{item.nm}</td>
                               <td style={s.tableCell}>{item.art}</td>
                               <td style={s.tableCell}>{item.kol}</td>
@@ -773,14 +931,38 @@ export default function AccountPage() {
   );
 }
 
-function getStatusColor(status) {
-  const colors = {
-    Отправлен: "#4caf50",
-    "В работе": "#ff9800",
-    Ожидание: "#f44336",
-    Доставлен: "#2196f3",
-  };
-  return colors[status] || "#757575";
+function getStatusColor(statusNumber) {
+  // st: 5 = зеленый (приехал), остальные = желтый
+  if (statusNumber === 5) {
+    return "#4caf50"; // зеленый
+  }
+  return "#ff9800"; // желтый
+}
+
+function getOrderDate(order) {
+  // Приоритет: gpdt -> pldt -> dt
+  if (order.gpdt) return order.gpdt;
+  if (order.pldt) return order.pldt;
+  if (order.dt) {
+    // Если dt содержит время, берем только дату
+    return order.dt.split(" ")[0];
+  }
+  return "Дата не указана";
+}
+
+function formatOrderDate(dateStr) {
+  if (!dateStr || dateStr === "Дата не указана") return dateStr;
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("ru-RU", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
 export const styles = (mobile) => ({
@@ -826,6 +1008,30 @@ export const styles = (mobile) => ({
   addInnForm: { backgroundColor: "#2a2a2a", borderRadius: "10px", padding: "20px", marginBottom: "20px", display: "flex", gap: "10px", flexWrap: mobile ? "wrap" : "nowrap" },
   profileActions: { marginTop: "16px", display: "flex", justifyContent: "flex-start" },
   downloadPricesButton: { backgroundColor: "#4caf50", border: "none", padding: "10px 18px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
+  nameValueContainer: { display: "flex", alignItems: "center", gap: "8px" },
+  editIconButton: { 
+    backgroundColor: "transparent", 
+    border: "1px solid #666", 
+    color: "#ffcc00", 
+    padding: "4px", 
+    borderRadius: "4px", 
+    cursor: "pointer", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center",
+    width: "24px",
+    height: "24px",
+    transition: "all 0.2s",
+    flexShrink: 0,
+  },
+  nameEditContainer: { display: "flex", flexDirection: "column", gap: "10px", width: "100%" },
+  nameEditButton: { backgroundColor: "#444", border: "none", color: "#fff", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px" },
+  nameEditInput: { width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #555", backgroundColor: "#1c1c1c", color: "#fff" },
+  nameActions: { display: "flex", gap: "10px", flexWrap: "wrap" },
+  nameSaveButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 14px", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", color: "#1c1c1c" },
+  nameCancelButton: { backgroundColor: "#666", border: "none", padding: "8px 14px", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", color: "#fff" },
+  nameErrorText: { marginTop: "6px", color: "#f66", fontSize: "13px" },
+  nameSuccessText: { marginTop: "6px", color: "#66ff99", fontSize: "13px" },
   input: { flex: 1, minWidth: "200px", padding: "10px 15px", borderRadius: "5px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "#fff", fontSize: "14px", outline: "none" },
   submitButton: { backgroundColor: "#4caf50", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
   cancelButton: { backgroundColor: "#666", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: "14px" },
@@ -891,4 +1097,11 @@ export const styles = (mobile) => ({
   priceCheckbox: { marginRight: "8px" },
   priceGroupName: { color: "#fff", fontSize: "14px", fontWeight: "500", flex: 1 },
   priceGroupId: { color: "#999", fontSize: "12px" },
+
 });
+
+
+
+//data_end (Машина выйхала ) 
+//gpdt 42 ( должны ) (готов не гов наверное 8 ) 
+//pldt 40 ( Мы хоти 5 числа лпновая (сращу появляется) 

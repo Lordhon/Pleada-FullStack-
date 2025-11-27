@@ -109,7 +109,7 @@ export default function CatalogPage() {
         return res.json();
       })
       .then((data) => {
-        // бэкенд уже отдаёт только нужные товары, здесь ничего не фильтруем
+        
         setItems(data);
         setFilteredItems(data);
       })
@@ -239,6 +239,7 @@ export default function CatalogPage() {
         email: emailAddress,
         phone: emailPhone,
         message: emailMessage,
+        domen: location.orgin
       });
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
       setEmailName("");

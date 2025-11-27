@@ -246,6 +246,7 @@ export default function CartPage() {
           email: emailAddress,
           phone: emailPhone,
           message: emailMessage,
+          domen: location.origin,
         }),
       });
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
@@ -304,6 +305,7 @@ export default function CartPage() {
           priceLevel: currentPriceLevel,
           savings: totalSavings,
           orderDate: new Date().toISOString(),
+          domen: location.origin
         };
 
         const resLine = await fetch(`${url}/api/order-line/`, {
@@ -370,12 +372,14 @@ export default function CartPage() {
           phone: user?.phone || user?.phone_number || "+7",
           inn: user?.inn || "",
           id_user: user?.id || " ",
+          company: user?.company || " ",
         },
         items: orderItems,
         totalSum: totalCartSum,
         priceLevel: currentPriceLevel,
         savings: totalSavings,
         orderDate: new Date().toISOString(),
+        domen: location.origin
       };
 
       const resLine = await fetch(`${url}/api/order-line/`, {
@@ -533,6 +537,7 @@ export default function CartPage() {
             <table style={s.table}>
               <thead>
                 <tr>
+                  <th style={s.th}>№</th>
                   <th style={s.th}>Артикул</th>
                   <th style={s.th}>Название</th>
                   <th style={s.th}>Цена (₽)</th>
@@ -544,12 +549,13 @@ export default function CartPage() {
                 </tr>
               </thead>
               <tbody>
-                {cartItems.map((item) => {
+                {cartItems.map((item, index) => {
                   const dynamicPrice = dynamicPrices[item.art];
                   const sumItem = dynamicPrice * item.quantity;
                   const save = item.price3 * item.quantity - sumItem;
                   return (
                     <tr key={item.art}>
+                      <td style={{ ...s.td, textAlign: "center" }}>{index + 1}</td>
                       <td style={s.td}>{item.art}</td>
                       <td style={s.td}>{item.name}</td>
                       <td style={s.td}>{formatPrice(dynamicPrice)}</td>
@@ -579,6 +585,10 @@ export default function CartPage() {
                 })}
               </tbody>
             </table>
+
+            <div style={s.cartNotice}>
+              Цены действительны на условиях 100% предоплаты
+            </div>
 
             <div style={s.summary}>
               <h3 style={s.summaryTitle}>Итого: {formatPrice(totalCartSum)} ₽</h3>
@@ -986,6 +996,13 @@ const styles = (mobile) => ({
     borderRadius: "4px",
     fontSize: "18px",
     fontWeight: "bold",
+  },
+  cartNotice: {
+    fontSize: mobile ? "13px" : "16px",
+    color: "#fff",
+    marginTop: "20px",
+    marginBottom: "10px",
+    textAlign: "left",
   },
   summary: {
     marginTop: "30px",

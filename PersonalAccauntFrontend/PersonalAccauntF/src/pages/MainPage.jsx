@@ -192,6 +192,7 @@ export default function MainPage() {
       await axios.post(`${window.location.origin}/api/callback/`, {
         name: callbackName,
         phone: callbackPhone,
+        domen: location.origin
       });
       setCallbackSuccess("Спасибо! Мы вам перезвоним в ближайшее время.");
       setCallbackPhone("+7");
@@ -281,6 +282,7 @@ export default function MainPage() {
         email: emailAddress,
         phone: emailPhone,
         message: emailMessage,
+        domen: location.origin,
       });
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
       setEmailName("");
