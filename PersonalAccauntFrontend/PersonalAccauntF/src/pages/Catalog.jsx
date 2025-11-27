@@ -36,20 +36,6 @@ export default function CatalogPage() {
     "/y.png",
   ];
 
-  const companyNames = {
-    komatsu: "Komatsu",
-    mst: "MST",
-    case: "CASE",
-    caterpillar: "Caterpillar",
-    terex: "Terex",
-    jcb: "JCB",
-    bobcat: "Bobcat",
-    volvo: "Volvo",
-    hidromek: "Hidromek",
-    mksm: "MKSM",
-    lokust: "Lokust",
-  };
-
   const priceChecks = {
     price: 500000,
     price1: 200000,
@@ -488,15 +474,11 @@ export default function CatalogPage() {
       </section>
 
       <section style={s.content}>
-        <h1 style={s.title}>Каталог: {companyNames[slug?.toLowerCase()] || slug?.toUpperCase()}</h1>
-        <div style={s.catalogNotice}>
-          Цены действительны на условиях 100% предоплаты
-        </div>
+        <h1 style={s.title}>Каталог: {slug?.toUpperCase()}</h1>
         <div style={s.tableContainer}>
           <table style={s.table}>
             <thead>
               <tr style={s.tableHeaderRow}>
-                <th style={s.tableHeader}>№</th>
                 <th style={s.tableHeader}>Артикул</th>
                 <th style={s.tableHeader}>Название</th>
                 <th style={s.tableHeader}>
@@ -513,7 +495,7 @@ export default function CatalogPage() {
                 </th>
                 <th style={s.tableHeader}>
                   <div style={s.priceHeaderText}>Розница</div>
-                  <div style={s.priceSubText}>без ограничений</div>
+                  <div style={s.priceSubText}>рекомендованная розничная цена</div>
                 </th>
                 <th style={s.tableHeader}>Кол-во</th>
                 <th style={s.tableHeader}></th>
@@ -530,7 +512,6 @@ export default function CatalogPage() {
                       backgroundColor: index % 2 === 0 ? "#2a2a2a" : "#333333",
                     }}
                   >
-                    <td style={{ ...s.tableCell, textAlign: "center" }}>{index + 1}</td>
                     <td style={s.tableCell}>{item.art}</td>
                     <td style={s.tableCell}>{item.name}</td>
 
@@ -587,7 +568,7 @@ export default function CatalogPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" style={s.noDataCell}>
+                  <td colSpan="8" style={s.noDataCell}>
                     Нет товаров
                   </td>
                 </tr>
@@ -910,12 +891,6 @@ const styles = (mobile) => ({
     padding: mobile ? "15px 10px" : "30px 20px",
     maxWidth: "1400px",
     margin: "0 auto",
-  },
-  catalogNotice: {
-    fontSize: mobile ? "13px" : "16px",
-    color: "#fff",
-    marginBottom: "20px",
-    textAlign: "left",
   },
   tableContainer: {
     overflowX: "auto",
