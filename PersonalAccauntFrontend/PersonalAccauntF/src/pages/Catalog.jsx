@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import useCartTotals from "../hooks/useCartTotals";
 
 const urlink = location.origin
 const urlinok1 = "http://localhost:8000"
 export default function CatalogPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const cartTotal = useCartTotals();
 
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -249,6 +251,7 @@ export default function CatalogPage() {
       if (updated[item.art]) updated[item.art].quantity += 1;
       else updated[item.art] = { ...item, quantity: 1 };
       localStorage.setItem("cart", JSON.stringify(updated));
+      window.dispatchEvent(new Event("cartUpdated"));
       return updated;
     });
   };
@@ -263,6 +266,7 @@ export default function CatalogPage() {
     setCart((prev) => {
       const updated = { ...prev, [art]: { ...prev[art], quantity } };
       localStorage.setItem("cart", JSON.stringify(updated));
+      window.dispatchEvent(new Event("cartUpdated"));
       return updated;
     });
   };
@@ -272,6 +276,7 @@ export default function CatalogPage() {
       const updated = { ...prev };
       delete updated[art];
       localStorage.setItem("cart", JSON.stringify(updated));
+      window.dispatchEvent(new Event("cartUpdated"));
       return updated;
     });
   };
@@ -382,9 +387,16 @@ export default function CatalogPage() {
             </div>
           )}
 
-          <button style={s.navButton} onClick={() => navigate("/cart")}>
-            Корзина
-          </button>
+          <div style={{ position: "relative" }}>
+            <button style={s.navButton} onClick={() => navigate("/cart")}>
+              Корзина
+            </button>
+            {cartTotal > 0 && (
+              <div style={s.cartBadge}>
+                <div style={s.cartCount}>{cartTotal}</div>
+              </div>
+            )}
+          </div>
 
           {isMobile && (
             <div style={s.mobileContactBlock}>
@@ -810,6 +822,25 @@ const styles = (mobile) => ({
     color: "#1c1c1c",
     whiteSpace: "nowrap",
     fontSize: "14px",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ff4444",
+    borderRadius: "50%",
+    width: "20px",
+    height: "20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+  },
+  cartCount: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#fff",
+    lineHeight: 1,
   },
   iconButton: {
     background: "none",
