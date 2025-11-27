@@ -9,6 +9,20 @@ const formatPrice = (value) => {
     maximumFractionDigits: 2,
   });
 };
+
+const priceGroups = [
+  { id: 30, key: "jcb", label: "JCB" },
+  { id: 43, key: "terex", label: "Terex" },
+  { id: 40, key: "komatsu", label: "Komatsu" },
+  { id: 41, key: "case", label: "CASE" },
+  { id: 38, key: "caterpillar", label: "Caterpillar" },
+  { id: 44, key: "mst", label: "MST" },
+  { id: 32, key: "bobcat", label: "Bobcat" },
+  { id: 42, key: "volvo", label: "Volvo" },
+  { id: 25, key: "hidromek", label: "Hidromek" },
+  { id: 15, key: "mksm", label: "MKSM" },
+  { id: 19, key: "lokust", label: "Lokust" },
+];
 import useCartTotals from "../hooks/useCartTotals";
 
 export default function AccountPage() {
@@ -319,19 +333,13 @@ export default function AccountPage() {
     }
   };
 
-  const priceGroups = [
-    { id: 30, key: "jcb", label: "JCB" },
-    { id: 43, key: "terex", label: "Terex" },
-    { id: 40, key: "komatsu", label: "Komatsu" },
-    { id: 41, key: "case", label: "CASE" },
-    { id: 38, key: "caterpillar", label: "Caterpillar" },
-    { id: 44, key: "mst", label: "MST" },
-    { id: 32, key: "bobcat", label: "Bobcat" },
-    { id: 42, key: "volvo", label: "Volvo" },
-    { id: 25, key: "hidromek", label: "Hidromek" },
-    { id: 15, key: "mksm", label: "MKSM" },
-    { id: 19, key: "lokust", label: "Lokust" },
-  ];
+  useEffect(() => {
+    if (showPriceModal) {
+      const allIds = priceGroups.map((group) => group.id);
+      setSelectedPriceGroups(allIds);
+      setPriceError("");
+    }
+  }, [showPriceModal]);
 
   const togglePriceGroup = (id) => {
     setPriceError("");
