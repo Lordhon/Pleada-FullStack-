@@ -354,7 +354,7 @@ export default function AccountPage() {
       return;
     }
     const groupsParam = selectedPriceGroups.join(",");
-    const url = `https://zpnn.ru/generate-price?groups=${groupsParam}`;
+    const url = `${window.location.origin}/generate-price?groups=${groupsParam}`;
     window.open(url, "_blank");
     setShowPriceModal(false);
   };
