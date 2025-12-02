@@ -651,7 +651,7 @@ export default function AccountPage() {
                             <div style={s.orderCardCompactHeader}>
                               <div>
                                 <h4 style={s.orderNumberCompact}>
-                                  Заказ #{order.num}
+                                  Заказ #{order.idorder}
                                 </h4>
                                 <p style={s.orderDateCompact}>
                                   {formatOrderDate(getOrderDate(order))}
@@ -715,7 +715,7 @@ export default function AccountPage() {
                   <div style={s.orderDetailHeader}>
                     <div>
                       <h2 style={s.orderDetailNumber}>
-                        Заказ #{selectedOrder.num}
+                        Заказ #{selectedOrder.idorder}
                       </h2>
                       <p style={s.orderDetailDate}>
                         {formatOrderDate(getOrderDate(selectedOrder))}
@@ -734,7 +734,7 @@ export default function AccountPage() {
                   <div style={s.orderDetailMeta}>
                     <div style={s.metaItem}>
                       <span style={s.metaLabel}>ID заказа:</span>
-                      <span style={s.metaValue}>{selectedOrder.idorder}</span>
+                      <span style={s.metaValue}>{selectedOrder.num}</span>
                     </div>
                     <div style={s.metaItem}>
                       <span style={s.metaLabel}>ИНН:</span>
@@ -940,19 +940,19 @@ export default function AccountPage() {
 }
 
 function getStatusColor(statusNumber) {
-  // st: 5 = зеленый (приехал), остальные = желтый
+  
   if (statusNumber === 5) {
-    return "#4caf50"; // зеленый
+    return "#4caf50"; 
   }
-  return "#ff9800"; // желтый
+  return "#ff9800"; 
 }
 
 function getOrderDate(order) {
-  // Приоритет: gpdt -> pldt -> dt
+  
   if (order.gpdt) return order.gpdt;
   if (order.pldt) return order.pldt;
   if (order.dt) {
-    // Если dt содержит время, берем только дату
+    
     return order.dt.split(" ")[0];
   }
   return "Дата не указана";

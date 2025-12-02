@@ -373,6 +373,7 @@ export default function CartPage() {
           inn: user?.inn || "",
           id_user: user?.id || " ",
           company: user?.company || " ",
+          name: user?.first_name || " "
         },
         items: orderItems,
         totalSum: totalCartSum,

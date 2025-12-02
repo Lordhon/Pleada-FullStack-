@@ -156,7 +156,7 @@ class MeApiView(APIView):
         first_name = user.first_name
         profile = user.userprofile_set.first()
         company = profile.company if profile else None
-        return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id , 'email':email ,'first_name': first_name})
+        return Response({'company':company , 'inn':user.inn , 'phone':phone , 'id':id , 'email':email ,'first_name': first_name  })
     
 
 class CallBack(APIView):
