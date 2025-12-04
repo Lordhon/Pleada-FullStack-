@@ -15,8 +15,16 @@ RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "SECRET_KEY_GOOGLE")
 DADATA_API_KEY = os.getenv("DADATA_API_KEY")
 
 DEBUG = True
-ALLOWED_HOSTS = ['*']
-CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = [
+    'zpnn.ru',
+    'rfzp.ru',
+    "localhost",
+]
+CORS_ALLOWED_ORIGINS = [
+    "https://zpnn.ru",
+    "https://rfzp.ru",
+    "http://localhost",
+]
 
 
 INSTALLED_APPS = [
