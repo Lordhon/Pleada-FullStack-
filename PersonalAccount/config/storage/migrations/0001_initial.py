@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('price1', models.FloatField()),
                 ('price2', models.FloatField()),
                 ('price3', models.FloatField()),
-                ('name', models.CharField(unique=True)),
+                ('name', models.CharField()),
                 ('gr', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='storage.itemcompany')),
             ],
         ),
