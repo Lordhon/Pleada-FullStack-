@@ -21,7 +21,7 @@ class StorageItem(models.Model):
     price1 = models.FloatField()
     price2 = models.FloatField()
     price3 = models.FloatField()
-    name = models.CharField(unique=True)
+    name = models.CharField()
     gr = models.ForeignKey(ItemCompany, on_delete=models.CASCADE)
     publ = models.BooleanField(default=False)
 
