@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   useEffect(() => {
     document.body.style.margin = "0";
@@ -49,6 +50,12 @@ export default function RegisterPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setMessage("");
+    
+    if (!privacyAccepted) {
+      setMessage("Необходимо дать согласие на обработку персональных данных");
+      return;
+    }
+    
     setLoading(true);
 
     
@@ -187,14 +194,62 @@ export default function RegisterPage() {
             required
           />
 
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "10px",
+              marginTop: "5px",
+            }}
+          >
+            <input
+              type="checkbox"
+              id="privacy-checkbox"
+              checked={privacyAccepted}
+              onChange={(e) => setPrivacyAccepted(e.target.checked)}
+              style={{
+                marginTop: "3px",
+                cursor: "pointer",
+                width: "18px",
+                height: "18px",
+                flexShrink: 0,
+              }}
+            />
+            <label
+              htmlFor="privacy-checkbox"
+              style={{
+                color: "#ffffff",
+                fontSize: isMobile ? "13px" : "14px",
+                cursor: "pointer",
+                lineHeight: "1.4",
+                flex: 1,
+              }}
+            >
+              Я согласен на{" "}
+              <span
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/privacy-policy");
+                }}
+                style={{
+                  color: "#ffcc00",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                }}
+              >
+                обработку персональных данных
+              </span>
+            </label>
+          </div>
+
           <button
             type="submit"
             style={{
               ...s.modalSubmitBtn,
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading || !privacyAccepted ? 0.6 : 1,
+              cursor: loading || !privacyAccepted ? "not-allowed" : "pointer",
             }}
-            disabled={loading}
+            disabled={loading || !privacyAccepted}
           >
             {loading ? "Отправка..." : "Зарегистрироваться"}
           </button>

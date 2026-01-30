@@ -9,6 +9,8 @@ import CatalogPage from "./pages/Catalog.jsx";
 import CartPage from "./pages/Cart.jsx";
 import OrderSuccess from "./pages/OrderSuccess.jsx";
 import AccountPage from "./pages/Account.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import PromoPage from "./pages/Promo.jsx";
 import { useEffect, useState } from "react";
 import CallbackModal from "./components/CallbackModal";
 
@@ -39,6 +41,8 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/profile" element={<AccountPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/promo" element={<PromoPage />} />
       </Routes>
 
       {showCallbackModal && (

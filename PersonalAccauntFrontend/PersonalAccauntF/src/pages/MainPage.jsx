@@ -3,28 +3,23 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import useCartTotals from "../hooks/useCartTotals";
 
-
 export default function MainPage() {
-  
   const navigate = useNavigate();
   const catalogRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [callbackPhone, setCallbackPhone] = useState("+7");
   const [callbackName, setCallbackName] = useState("");
   const [callbackLoading, setCallbackLoading] = useState(false);
   const [callbackError, setCallbackError] = useState("");
   const [callbackSuccess, setCallbackSuccess] = useState("");
-
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailName, setEmailName] = useState("");
   const [emailPhone, setEmailPhone] = useState("+7");
@@ -33,6 +28,7 @@ export default function MainPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
+  
 
   const catalogItems = [
     { src: "/komatsy.jpg", url: "/catalog/komatsu/" },
@@ -46,19 +42,13 @@ export default function MainPage() {
     { src: "/hidromek.png", url: "/catalog/hidromek/" },
     { src: "/mksm.jpg", url: "/catalog/mksm/" },
     { src: "/locust.png", url: "/catalog/lokust/" },
+    { src: "/manitou.jpg", url: "/catalog/manitou/" },
   ];
 
-  const productPhotos = [
-    "/qw.png",
-    "/w.png",
-    "/e.png",
-    "/r.png",
-    "/u.png",
-    "/y.png",
-  ];
-
+  const productPhotos = ["/qw.png", "/w.png", "/e.png", "/r.png", "/u.png", "/y.png"];
   const heroImages = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg", "/slide4.jpg"];
   const [currentSlide, setCurrentSlide] = useState(0);
+
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
 
@@ -80,7 +70,7 @@ export default function MainPage() {
     document.documentElement.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
   }, []);
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const url = window.location.origin;
@@ -95,13 +85,11 @@ export default function MainPage() {
       try {
         await axios.get(`${url}/api/verify/`, { headers: { Authorization: `Bearer ${token}` } });
         const res = await axios.get(`${url}/api/me/`, { headers: { Authorization: `Bearer ${token}` } });
-        
         setUser(res.data);
         setIsAuthenticated(true);
       } catch {
         localStorage.removeItem("token");
         setIsAuthenticated(false);
-        
         setUser(null);
       }
     };
@@ -232,13 +220,7 @@ export default function MainPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    const fullName =
-      user?.fio ||
-      user?.name ||
-      user?.first_name ||
-      user?.username ||
-      user?.company ||
-      "";
+    const fullName = user?.fio || user?.name || user?.first_name || user?.username || user?.company || "";
     if (fullName) setEmailName(fullName);
     if (user?.email) setEmailAddress(user.email);
     if (user?.phone) setEmailPhone(formatPhone(user.phone));
@@ -299,7 +281,6 @@ export default function MainPage() {
   const s = styles(isMobile);
 
   return (
-
     <div style={s.page}>
       <header style={s.header}>
         <div style={s.headerLeft}>
@@ -312,12 +293,35 @@ export default function MainPage() {
             )}
           </div>
           {!isMobile && (
-            <button style={s.promoButton} onClick={() => navigate("/promo")}>Акции</button>
+            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
+              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
+            </button>
           )}
         </div>
 
         {isMobile && (
-          <button style={{ ...s.promoButton, marginTop: "10px" }} onClick={() => navigate("/promo")}>Акции</button>
+          <div style={s.mobileButtonsRow}>
+            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
+              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
+            </button>
+            {!isAuthenticated ? (
+              <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+            ) : (
+              <div style={s.profileContainer}>
+                <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                <span style={s.company}>{user?.company || "Нет названия"}</span>
+              </div>
+            )}
+
+            <div style={{ position: "relative" }}>
+              <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+              {cartTotal > 0 && (
+                <div style={s.cartBadge}>
+                  <div style={s.cartCount}>{cartTotal}</div>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         <div style={s.headerRight}>
@@ -326,11 +330,9 @@ export default function MainPage() {
               <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                 <img src="/email.png" alt="email" style={s.headerIcon} />
               </button>
-
               <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
-              
               <div style={s.phoneContent}>
                 <div>+7 930 665-32-71</div>
                 <div>zakaz@zpnn.ru</div>
@@ -339,39 +341,40 @@ export default function MainPage() {
             </div>
           )}
 
-          {!isAuthenticated ? (
-            <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-          ) : (
-            <div style={s.profileContainer}>
-              <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-              <span style={s.company}>{user?.company || "Нет названия"}</span>
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              {!isAuthenticated ? (
+                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+              ) : (
+                <div style={s.profileContainer}>
+                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                  <span style={s.company}>{user?.company || "Нет названия"}</span>
+                </div>
+              )}
+
+              <div style={{ position: "relative" }}>
+                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                {cartTotal > 0 && (
+                  <div style={s.cartBadge}>
+                    <div style={s.cartCount}>{cartTotal}</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          <div style={{ position: "relative" }}>
-            <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-            {cartTotal > 0 && (
-              <div style={s.cartBadge}>
-                <div style={s.cartCount}>{cartTotal}</div>
-              </div>
-            )}
-          </div>
-
           {isMobile && (
-            <div style={s.mobileContactBlock}>
-              <div style={s.mobileIconsContainer}>
+            <>
+              <div style={s.mobileDivider}></div>
+              <div style={s.mobileIconsRow}>
                 <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                   <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
                 </button>
-                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink}>
+                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
               </div>
-              <div style={s.mobileContactsContainer}>
-                <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
-                <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
-              </div>
-            </div>
+            </>
           )}
         </div>
       </header>
@@ -466,22 +469,8 @@ export default function MainPage() {
             <h2 style={s.modalTitle}>Обратный звонок</h2>
             <p style={s.modalText}>Введите ваше имя и номер телефона, и мы вам перезвоним</p>
 
-            <input
-              type="text"
-              value={callbackName}
-              onChange={handleCallbackNameChange}
-              style={s.modalInput}
-              placeholder="Имя"
-              disabled={callbackLoading}
-            />
-            <input
-              type="tel"
-              value={callbackPhone}
-              onChange={handleCallbackPhoneChange}
-              style={s.modalInput}
-              placeholder="Номер телефона"
-              disabled={callbackLoading}
-            />
+            <input type="text" value={callbackName} onChange={handleCallbackNameChange} style={s.modalInput} placeholder="Имя" disabled={callbackLoading} />
+            <input type="tel" value={callbackPhone} onChange={handleCallbackPhoneChange} style={s.modalInput} placeholder="Номер телефона" disabled={callbackLoading} />
 
             {callbackError && <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{callbackError}</div>}
             {callbackSuccess && <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{callbackSuccess}</div>}
@@ -506,37 +495,10 @@ export default function MainPage() {
             <h2 style={s.modalTitle}>Отправить письмо</h2>
             <p style={s.modalText}>Заполните поля ниже, и мы свяжемся с вами</p>
 
-            <input
-              type="text"
-              value={emailName}
-              onChange={handleEmailNameChange}
-              style={s.modalInput}
-              placeholder="Ваше имя *"
-              disabled={emailLoading}
-            />
-            <input
-              type="email"
-              value={emailAddress}
-              onChange={handleEmailAddressChange}
-              style={s.modalInput}
-              placeholder="Ваша почта *"
-              disabled={emailLoading}
-            />
-            <input
-              type="tel"
-              value={emailPhone}
-              onChange={handleEmailPhoneChange}
-              style={s.modalInput}
-              placeholder="Номер телефона *"
-              disabled={emailLoading}
-            />
-            <textarea
-              value={emailMessage}
-              onChange={handleEmailMessageChange}
-              style={{...s.modalInput, minHeight: "100px", fontFamily: "Arial, sans-serif"}}
-              placeholder="Ваше сообщение *"
-              disabled={emailLoading}
-            />
+            <input type="text" value={emailName} onChange={handleEmailNameChange} style={s.modalInput} placeholder="Ваше имя *" disabled={emailLoading} />
+            <input type="email" value={emailAddress} onChange={handleEmailAddressChange} style={s.modalInput} placeholder="Ваша почта *" disabled={emailLoading} />
+            <input type="tel" value={emailPhone} onChange={handleEmailPhoneChange} style={s.modalInput} placeholder="Номер телефона *" disabled={emailLoading} />
+            <textarea value={emailMessage} onChange={handleEmailMessageChange} style={{...s.modalInput, minHeight: "100px", fontFamily: "Arial, sans-serif"}} placeholder="Ваше сообщение *" disabled={emailLoading} />
 
             {emailError && <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>{emailError}</div>}
             {emailSuccess && <div style={{ color: "limegreen", fontSize: "14px", marginBottom: "10px" }}>{emailSuccess}</div>}
@@ -554,25 +516,28 @@ export default function MainPage() {
           </div>
         </div>
       )}
+
+
     </div>
   );
 }
 
 export const styles = (mobile) => ({
-  page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden" },
-  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "12px 14px" : "10px 40px", backgroundColor: "#2a2a2a", gap: "12px", position: "relative", boxShadow: mobile ? "0 4px 16px rgba(0,0,0,0.35)" : "none" },
-  headerLeft: { display: "flex", alignItems: "center", gap: "20px" },
-  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "15px", cursor: "pointer" },
-  logoImage: { width: mobile ? "100px" : "150px", height: "auto", objectFit: "contain" },
+  page: { backgroundColor: "#1c1c1c", color: "white", fontFamily: "Arial, sans-serif", minHeight: "100vh", width: "100%", overflowX: "hidden", margin: 0, padding: 0, boxSizing: "border-box" },
+  header: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", padding: mobile ? "10px 12px" : "10px 40px", backgroundColor: "#2a2a2a", gap: mobile ? "10px" : "12px", position: "relative", boxShadow: mobile ? "0 4px 16px rgba(0,0,0,0.35)" : "none", width: "100%", boxSizing: "border-box" },
+  headerTopRow: { display: "flex", alignItems: "center", justifyContent: mobile ? "center" : "space-between", width: "100%", gap: mobile ? "8px" : "12px", flexWrap: "nowrap" },
+  headerLeft: { display: "flex", alignItems: "center", gap: "20px", width: "auto", justifyContent: "flex-start", flexWrap: "nowrap" },
+  mobileButtonsRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", marginTop: mobile ? "8px" : "0" },
+  logoSection: { display: "flex", alignItems: "center", gap: mobile ? "8px" : "15px", cursor: "pointer", flexShrink: 0, minWidth: 0 },
+  logoImage: { width: mobile ? "80px" : "150px", height: "auto", objectFit: "contain", flexShrink: 0 },
   logoText: { display: "flex", flexDirection: "column" },
   logoTitle: { margin: 0, color: "#ffcc00", fontSize: mobile ? "22px" : "30px" },
-  headerRight: { display: "flex", alignItems: "center", gap: mobile ? "10px" : "20px", flexWrap: "wrap", justifyContent: mobile ? "space-between" : "center", width: mobile ? "100%" : "auto" },
-  
+  headerRight: { display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "flex-end" : "center", gap: mobile ? "8px" : "20px", flexWrap: "nowrap", justifyContent: mobile ? "flex-end" : "center", width: mobile ? "100%" : "auto" },
   phoneSection: { display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", color: "white", fontSize: "14px" },
   phoneContent: { display: "flex", flexDirection: "column", alignItems: "flex-end" },
   phoneSub: { color: "#ccc", fontSize: "12px" },
-  
-  mobileContactBlock: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "100%", marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #444" },
+  mobileDivider: { width: "100%", height: "1px", backgroundColor: "#444", margin: "8px 0" },
+  mobileIconsRow: { display: "flex", gap: "10px", alignItems: "center", justifyContent: "center", width: "100%" },
   mobileIconsContainer: { display: "flex", gap: "8px", alignItems: "center" },
   mobileIconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   mobileTelegramLink: { display: "flex", textDecoration: "none" },
@@ -580,41 +545,25 @@ export const styles = (mobile) => ({
   mobileContactsContainer: { display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" },
   mobilePhoneText: { color: "#ffcc00", fontWeight: "bold", fontSize: "13px" },
   mobileEmailText: { color: "#ccc", fontSize: "11px" },
-  
   headerPhotoLink: { display: "flex", textDecoration: "none" },
   headerPhoto: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", transition: "transform 0.2s" },
   headerIcon: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", transition: "transform 0.2s" },
   iconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
-  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "8px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px" },
-  cartBadge: {
-    position: "absolute",
-    top: "-8px",
-    right: "-8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ff4444",
-    borderRadius: "50%",
-    width: "20px",
-    height: "20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-  },
-  cartCount: {
-    fontSize: "12px",
-    fontWeight: "bold",
-    color: "#fff",
-    lineHeight: 1,
-  },
+  promoButtonWithIcon: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "6px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", display: "flex", alignItems: "center", justifyContent: "center", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px", flexShrink: 0 },
+  settingsButton: { backgroundColor: "transparent", border: "none", padding: 0, cursor: "pointer", fontSize: "24px", transition: "transform 0.2s" },
+  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "10px 14px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "13px" : "14px", minHeight: mobile ? "40px" : "auto", display: "flex", alignItems: "center", justifyContent: "center" },
+  cartBadge: { position: "absolute", top: "-8px", right: "-8px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#ff4444", borderRadius: "50%", width: "20px", height: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" },
+  cartCount: { fontSize: "12px", fontWeight: "bold", color: "#fff", lineHeight: 1 },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
   company: { fontSize: "11px", color: "#ffcc00", fontWeight: "500", textAlign: "center", whiteSpace: "nowrap", position: "absolute", top: "100%", marginTop: "4px", left: "50%", transform: "translateX(-50%)" },
-  searchContainer: { display: "flex", justifyContent: "center", padding: mobile ? "14px 16px" : "15px 10px", backgroundColor: "#222", boxShadow: mobile ? "0 4px 18px rgba(0,0,0,0.25)" : "none" },
+  searchContainer: { display: "flex", justifyContent: "center", padding: mobile ? "12px" : "15px 10px", backgroundColor: "#222", boxShadow: mobile ? "0 4px 18px rgba(0,0,0,0.25)" : "none", width: "100%", boxSizing: "border-box" },
   searchInput: { width: "100%", padding: mobile ? "12px 14px" : "8px 12px", borderRadius: "10px", border: "1px solid #444", backgroundColor: "#1c1c1c", color: "white", fontSize: mobile ? "14px" : "14px", minHeight: mobile ? "46px" : "auto" },
   searchMessage: { color: "#ffcc00", marginTop: "5px", fontSize: "14px", textAlign: "center" },
   suggestionsList: { listStyle: "none", padding: "5px", margin: "5px 0 0 0", backgroundColor: "#333", borderRadius: "5px", maxHeight: "200px", overflowY: "auto" },
   suggestionItem: { padding: "8px", cursor: "pointer", borderBottom: "1px solid #444", color: "white" },
   hero: { textAlign: "center", marginBottom: mobile ? "40px" : "60px" },
-  heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "24px 14px" : "60px 20px 40px", position: "relative", backgroundColor: mobile ? "#242424" : "transparent", borderRadius: mobile ? "16px" : "0" },
+  heroContent: { width: "100%", maxWidth: "1200px", margin: "0 auto", padding: mobile ? "20px 12px" : "60px 20px 40px", position: "relative", backgroundColor: mobile ? "#242424" : "transparent", borderRadius: mobile ? "16px" : "0", boxSizing: "border-box" },
   heroTitle: { fontSize: mobile ? "24px" : "40px", marginBottom: "10px" },
   heroText: { color: "#ccc", fontSize: mobile ? "14px" : "18px", marginBottom: "20px" },
   buttons: { display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "center", gap: "10px", marginBottom: "30px" },
@@ -625,15 +574,15 @@ export const styles = (mobile) => ({
   navButtonRight: { position: "absolute", top: "50%", right: "10px", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.4)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", cursor: "pointer", fontSize: "20px" },
   dots: { position: "absolute", bottom: "15px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px" },
   dot: { width: "12px", height: "12px", borderRadius: "50%", cursor: "pointer", transition: "background-color 0.3s" },
-  catalogSection: { display: "flex", justifyContent: "center", width: "100%", padding: mobile ? "20px 14px" : "0", marginBottom: mobile ? "40px" : "60px" },
+  catalogSection: { display: "flex", justifyContent: "center", width: "100%", padding: mobile ? "20px 12px" : "0", marginBottom: mobile ? "40px" : "60px", boxSizing: "border-box" },
   catalog: { width: "1200px", maxWidth: "95%" },
   catalogTitle: { fontSize: mobile ? "22px" : "28px", marginBottom: "20px", textAlign: "left" },
   catalogGrid: { display: "grid", gridTemplateColumns: mobile ? "repeat(2, minmax(140px, 1fr))" : "repeat(auto-fit, minmax(200px, 1fr))", gap: mobile ? "12px" : "20px" },
   catalogItem: { backgroundColor: "#2a2a2a", borderRadius: "10px", overflow: "hidden", cursor: "pointer", aspectRatio: "16/9" },
   catalogImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "10px" },
-  productsSection: { display: "flex", justifyContent: "center", padding: "60px 20px", backgroundColor: "#1c1c1c", width: "100%" },
-  productsGallery: { display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: mobile ? "15px" : "25px", maxWidth: "1400px" },
-  productPhoto: { width: mobile ? "120px" : "200px", height: mobile ? "120px" : "200px", objectFit: "cover", borderRadius: "8px" },
+  productsSection: { display: "flex", justifyContent: "center", padding: mobile ? "30px 12px" : "60px 20px", backgroundColor: "#1c1c1c", width: "100%", boxSizing: "border-box" },
+  productsGallery: { display: "flex", justifyContent: mobile ? "flex-start" : "center", alignItems: "center", flexWrap: "wrap", gap: mobile ? "10px" : "25px", maxWidth: "1400px", width: "100%", paddingLeft: mobile ? "8px" : "0" },
+  productPhoto: { width: mobile ? "calc((100% - 20px) / 3)" : "200px", height: mobile ? "calc((100% - 20px) / 3)" : "200px", maxWidth: mobile ? "none" : "200px", maxHeight: mobile ? "none" : "200px", objectFit: mobile ? "contain" : "cover", borderRadius: "8px", aspectRatio: "1/1", backgroundColor: mobile ? "#2a2a2a" : "transparent" },
   modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
   modal: { backgroundColor: "#2a2a2a", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "400px", width: "90%", position: "relative" },
   modalTitle: { margin: "0 0 15px 0", fontSize: "24px", color: "#ffcc00", fontWeight: "bold" },

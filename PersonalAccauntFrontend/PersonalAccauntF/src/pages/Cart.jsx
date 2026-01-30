@@ -463,14 +463,14 @@ export default function CartPage() {
           </div>
           {!isMobile && (
             <button style={s.promoButton} onClick={() => navigate("/promo")}>
-              Акции
+              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
             </button>
           )}
         </div>
 
         {isMobile && (
           <button style={{ ...s.promoButton, marginTop: "10px" }} onClick={() => navigate("/promo")}>
-            Акции
+            Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
           </button>
         )}
 
@@ -567,6 +567,18 @@ export default function CartPage() {
                           min="1"
                           max={item.kl}
                           onChange={(e) => updateQuantity(item.art, e.target.value)}
+                          onFocus={(e) => {
+                            setTimeout(() => {
+                              e.target.select();
+                            }, 0);
+                          }}
+                          onMouseDown={(e) => {
+                            if (document.activeElement !== e.target) {
+                              e.preventDefault();
+                              e.target.focus();
+                              setTimeout(() => e.target.select(), 0);
+                            }
+                          }}
                           style={{
                             ...s.input,
                             width: isMobile ? "50px" : "70px",
@@ -788,6 +800,8 @@ const styles = (mobile) => ({
     fontWeight: "bold",
     color: "#1c1c1c",
     whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "center",
   },
   headerRight: {
     display: "flex",

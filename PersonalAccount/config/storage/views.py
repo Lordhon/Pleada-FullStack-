@@ -26,7 +26,7 @@ def getkey():
 
 token = os.getenv('API_PHONE_SEND')
 logger = logging.getLogger(__name__)
-ALLOWED_COMPANIES = ["jcb", "terex", "komatsu" , "case" ,"caterpillar" , "mst" , "bobcat" , "volvo" , "hidromek" , "mksm"  , "lokust"]
+ALLOWED_COMPANIES = ["jcb", "terex", "komatsu" , "case" ,"caterpillar" , "mst" , "bobcat" , "volvo" , "hidromek" , "mksm"  , "lokust" , "manitou"]
 class StorageView(APIView):
     def get(self, request , slug):
         if slug not in ALLOWED_COMPANIES: 

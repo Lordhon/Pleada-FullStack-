@@ -19,11 +19,15 @@ ALLOWED_HOSTS = [
     'zpnn.ru',
     'rfzp.ru',
     "localhost",
+
+    "192.168.61.210"
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://zpnn.ru",
     "https://rfzp.ru",
     "http://localhost",
+
+    "http://192.168.61.210"
 ]
 
 

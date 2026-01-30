@@ -72,6 +72,10 @@ export default function CatalogPage() {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#1c1c1c";
+    document.body.style.overflowX = "hidden";
+    document.documentElement.style.margin = "0";
+    document.documentElement.style.padding = "0";
+    document.documentElement.style.overflowX = "hidden";
   }, []);
 
   useEffect(() => {
@@ -330,29 +334,48 @@ export default function CatalogPage() {
   return (
     <div style={s.page}>
       <header style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logoSection} onClick={() => navigate("/")}>
-            <img src="/logo.png" alt="logo" style={s.logoImage} />
-            {!isMobile && (
+        {!isMobile ? (
+          <div style={s.headerLeft}>
+            <div style={s.logoSection} onClick={() => navigate("/")}>
+              <img src="/logo.png" alt="logo" style={s.logoImage} />
               <div style={s.logoText}>
                 <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>
               </div>
-            )}
-          </div>
-          {!isMobile && (
-            <button style={s.promoButton} onClick={() => navigate("/promo")}>
-              Акции
+            </div>
+            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
+              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            <div style={s.headerTopRow}>
+              <div style={s.logoSection} onClick={() => navigate("/")}>
+                <img src="/logo.png" alt="logo" style={s.logoImage} />
+              </div>
+            </div>
+            <div style={s.mobileButtonsRow}>
+              <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
+                Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
+              </button>
+              {!isAuthenticated ? (
+                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+              ) : (
+                <div style={s.profileContainer}>
+                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                  <span style={s.company}>{user?.company || "Нет названия"}</span>
+                </div>
+              )}
 
-        {isMobile && (
-          <button
-            style={{ ...s.promoButton, marginTop: "10px" }}
-            onClick={() => navigate("/promo")}
-          >
-            Акции
-          </button>
+              <div style={{ position: "relative" }}>
+                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                {cartTotal > 0 && (
+                  <div style={s.cartBadge}>
+                    <div style={s.cartCount}>{cartTotal}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
 
         <div style={s.headerRight}>
@@ -361,11 +384,9 @@ export default function CatalogPage() {
               <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                 <img src="/email.png" alt="email" style={s.headerIcon} />
               </button>
-
               <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
-              
               <div style={s.phoneContent}>
                 <div>+7 930 665-32-71</div>
                 <div>zakaz@zpnn.ru</div>
@@ -374,43 +395,40 @@ export default function CatalogPage() {
             </div>
           )}
 
-          {!isAuthenticated ? (
-            <button style={s.navButton} onClick={() => navigate("/login")}>
-              Войти
-            </button>
-          ) : (
-            <div style={s.profileContainer}>
-              <button style={s.navButton} onClick={() => navigate("/profile")}>
-                Профиль
-              </button>
-              <span style={s.company}>{user?.company || "Нет названия"}</span>
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              {!isAuthenticated ? (
+                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+              ) : (
+                <div style={s.profileContainer}>
+                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                  <span style={s.company}>{user?.company || "Нет названия"}</span>
+                </div>
+              )}
+
+              <div style={{ position: "relative" }}>
+                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                {cartTotal > 0 && (
+                  <div style={s.cartBadge}>
+                    <div style={s.cartCount}>{cartTotal}</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          <div style={{ position: "relative" }}>
-            <button style={s.navButton} onClick={() => navigate("/cart")}>
-              Корзина
-            </button>
-            {cartTotal > 0 && (
-              <div style={s.cartBadge}>
-                <div style={s.cartCount}>{cartTotal}</div>
-              </div>
-            )}
-          </div>
-
           {isMobile && (
-            <div style={s.mobileContactBlock}>
-              <div style={s.mobileIconsContainer}>
+            <>
+              <div style={s.mobileDivider}></div>
+              <div style={s.mobileIconsRow}>
                 <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                   <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
                 </button>
-                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink}>
+                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
               </div>
-              <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
-              <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
-            </div>
+            </>
           )}
         </div>
       </header>
@@ -481,6 +499,7 @@ export default function CatalogPage() {
               { src: "/hidromek.png", url: "/catalog/hidromek/" },
               { src: "/mksm.jpg", url: "/catalog/mksm/" },
               { src: "/locust.png", url: "/catalog/lokust/" },
+              { src: "/manitou.jpg", url: "/catalog/manitou/" },
             ].map((item, index) => (
               <div
                 key={index}
@@ -581,6 +600,18 @@ export default function CatalogPage() {
                             type="number"
                             value={cart[item.art].quantity}
                             onChange={(e) => updateQuantity(item.art, e.target.value)}
+                            onFocus={(e) => {
+                              setTimeout(() => {
+                                e.target.select();
+                              }, 0);
+                            }}
+                            onMouseDown={(e) => {
+                              if (document.activeElement !== e.target) {
+                                e.preventDefault();
+                                e.target.focus();
+                                setTimeout(() => e.target.select(), 0);
+                              }
+                            }}
                             min="1"
                             max={item.kl}
                             style={s.quantityInput}
@@ -681,21 +712,28 @@ const styles = (mobile) => ({
     color: "white",
     fontFamily: "Arial, sans-serif",
     minHeight: "100vh",
+    width: "100%",
+    overflowX: "hidden",
+    margin: 0,
+    padding: 0,
+    boxSizing: "border-box",
   },
   header: {
     display: "flex",
     flexDirection: mobile ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: mobile ? "10px" : "10px 40px",
+    padding: mobile ? "10px 12px" : "10px 40px",
     backgroundColor: "#2a2a2a",
-    gap: "10px",
+    gap: mobile ? "10px" : "10px",
+    width: "100%",
+    boxSizing: "border-box",
   },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
+  headerTopRow: { display: "flex", alignItems: "center", justifyContent: mobile ? "center" : "space-between", width: "100%", gap: mobile ? "8px" : "12px", flexWrap: "nowrap" },
+  headerLeft: { display: "flex", alignItems: "center", gap: "20px", width: "auto", justifyContent: "flex-start", flexWrap: "nowrap" },
+  mobileButtonsRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", marginTop: mobile ? "8px" : "0" },
+  mobileDivider: { width: "100%", height: "1px", backgroundColor: "#444", margin: "8px 0" },
+  mobileIconsRow: { display: "flex", gap: "10px", alignItems: "center", justifyContent: "center", width: "100%" },
   headerRight: {
     display: "flex",
     alignItems: "center",
@@ -711,9 +749,10 @@ const styles = (mobile) => ({
     cursor: "pointer",
   },
   logoImage: {
-    width: mobile ? "100px" : "150px",
+    width: mobile ? "80px" : "150px",
     height: "auto",
     objectFit: "contain",
+    flexShrink: 0,
   },
   logoText: {
     display: "flex",
@@ -733,6 +772,23 @@ const styles = (mobile) => ({
     fontWeight: "bold",
     color: "#1c1c1c",
     whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "center",
+  },
+  promoButtonWithIcon: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: mobile ? "6px 12px" : "8px 16px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    whiteSpace: "nowrap",
+    fontSize: mobile ? "12px" : "14px",
+    flexShrink: 0,
   },
   profileContainer: {
     display: "flex",
@@ -796,15 +852,15 @@ const styles = (mobile) => ({
     textDecoration: "none",
   },
   mobileTelegramIcon: {
-    width: "50px",
-    height: "50px",
+    width: mobile ? "36px" : "50px",
+    height: mobile ? "36px" : "50px",
     borderRadius: "50%",
     objectFit: "cover",
   },
   mobilePhoneText: {
     color: "#ffcc00",
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: mobile ? "13px" : "14px",
     textAlign: "center",
   },
   mobileEmailText: {
@@ -860,8 +916,10 @@ const styles = (mobile) => ({
   searchContainer: {
     display: "flex",
     justifyContent: "center",
-    padding: "15px 10px",
+    padding: mobile ? "12px" : "15px 10px",
     backgroundColor: "#222",
+    width: "100%",
+    boxSizing: "border-box",
   },
   searchInput: {
     width: "100%",
@@ -897,8 +955,9 @@ const styles = (mobile) => ({
     display: "flex",
     justifyContent: "center",
     width: "100%",
-    padding: mobile ? "20px 10px" : "30px 20px",
+    padding: mobile ? "20px 12px" : "30px 20px",
     backgroundColor: "#1c1c1c",
+    boxSizing: "border-box",
   },
   catalogWrapper: {
     width: "100%",
@@ -938,9 +997,11 @@ const styles = (mobile) => ({
     textAlign: "left",
   },
   content: {
-    padding: mobile ? "15px 10px" : "30px 20px",
+    padding: mobile ? "15px 12px" : "30px 20px",
     maxWidth: "1400px",
     margin: "0 auto",
+    width: "100%",
+    boxSizing: "border-box",
   },
   catalogNotice: {
     fontSize: mobile ? "13px" : "16px",
@@ -1063,23 +1124,30 @@ const styles = (mobile) => ({
   productsSection: {
     display: "flex",
     justifyContent: "center",
-    padding: "60px 20px",
+    padding: mobile ? "30px 12px" : "60px 20px",
     backgroundColor: "#1c1c1c",
     width: "100%",
+    boxSizing: "border-box",
   },
   productsGallery: {
     display: "flex",
-    justifyContent: "center",
+    justifyContent: mobile ? "flex-start" : "center",
     alignItems: "center",
     flexWrap: "wrap",
-    gap: mobile ? "15px" : "25px",
+    gap: mobile ? "10px" : "25px",
     maxWidth: "1400px",
+    width: "100%",
+    paddingLeft: mobile ? "8px" : "0",
   },
   productPhoto: {
-    width: mobile ? "120px" : "200px",
-    height: mobile ? "120px" : "200px",
-    objectFit: "cover",
+    width: mobile ? "calc((100% - 20px) / 3)" : "200px",
+    height: mobile ? "calc((100% - 20px) / 3)" : "200px",
+    maxWidth: mobile ? "none" : "200px",
+    maxHeight: mobile ? "none" : "200px",
+    objectFit: mobile ? "contain" : "cover",
     borderRadius: "8px",
+    aspectRatio: "1/1",
+    backgroundColor: mobile ? "#2a2a2a" : "transparent",
   },
   headerPhotoLink: {
     display: "flex",
