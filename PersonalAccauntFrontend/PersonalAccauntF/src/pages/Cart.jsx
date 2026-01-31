@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import CryptoJS from "crypto-js";
 
 const url = location.origin;
@@ -19,6 +19,8 @@ const formatPrice = (value) => {
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isCartPage = location.pathname === "/cart";
   const [cart, setCart] = useState({});
   const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [phone, setPhone] = useState("+7");
@@ -452,26 +454,40 @@ export default function CartPage() {
     <div style={s.page}>
      
       <header style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
-            <img src="/logo.png" alt="logo" style={s.logoImage} />
-            {!isMobile && (
+        {!isMobile ? (
+          <div style={s.headerLeft}>
+            <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
+              <img src="/logo.png" alt="logo" style={s.logoImage} />
               <div style={s.logoText}>
                 <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>
               </div>
-            )}
-          </div>
-          {!isMobile && (
-            <button style={s.promoButton} onClick={() => navigate("/promo")}>
+            </div>
+            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
               Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
             </button>
-          )}
-        </div>
-
-        {isMobile && (
-          <button style={{ ...s.promoButton, marginTop: "10px" }} onClick={() => navigate("/promo")}>
-            Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
-          </button>
+          </div>
+        ) : (
+          <>
+            <div style={s.headerTopRow}>
+              <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
+                <img src="/logo.png" alt="logo" style={s.logoImage} />
+              </div>
+            </div>
+            <div style={s.mobileButtonsRow}>
+              <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
+                Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
+              </button>
+              {!isAuthenticated ? (
+                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+              ) : (
+                <div style={s.profileContainer}>
+                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                  <span style={s.company}>{user?.company || "Нет названия"}</span>
+                </div>
+              )}
+              <button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>
+            </div>
+          </>
         )}
 
         <div style={s.headerRight}>
@@ -480,7 +496,6 @@ export default function CartPage() {
               <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                 <img src="/email.png" alt="email" style={s.headerIcon} />
               </button>
-
               <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
                 <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
               </a>
@@ -491,39 +506,46 @@ export default function CartPage() {
               </div>
             </div>
           )}
-          <nav style={s.nav}>
-            {!isAuthenticated ? (
-              <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-            ) : (
-              <div style={s.profileContainer}>
-                <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-                {user?.company && <span style={s.company}>{user.company}</span>}
-              </div>
-            )}
-            <div style={{ position: "relative" }}>
-              <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-              {cartTotalCount > 0 && (
-                <div style={s.cartBadge}>
-                  <div style={s.cartCount}>{cartTotalCount}</div>
+
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              {!isAuthenticated ? (
+                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
+              ) : (
+                <div style={s.profileContainer}>
+                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
+                  <span style={s.company}>{user?.company || "Нет названия"}</span>
+                </div>
+              )}
+              {!isCartPage && (
+                <div style={{ position: "relative" }}>
+                  <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                  {cartTotalCount > 0 && (
+                    <div style={s.cartBadge}>
+                      <div style={s.cartCount}>{cartTotalCount}</div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-            <button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>
-          </nav>
+          )}
 
           {isMobile && (
-            <div style={s.mobileContactBlock}>
-              <div style={s.mobileIconsContainer}>
+            <>
+              <div style={s.mobileDivider}></div>
+              <div style={s.mobileIconsRow}>
                 <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
                   <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
                 </button>
-                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink}>
+                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
               </div>
-              <div style={s.mobilePhoneText}>+7 930 665-32-71</div>
-              <div style={s.mobileEmailText}>zakaz@zpnn.ru</div>
-            </div>
+              <div style={s.mobileContactsContainer}>
+                <a href="tel:+79306653271" style={{ ...s.mobilePhoneText, textDecoration: "none" }}>+7 930 665-32-71</a>
+                <a href="mailto:zakaz@zpnn.ru" style={{ ...s.mobileEmailText, textDecoration: "none" }}>zakaz@zpnn.ru</a>
+              </div>
+            </>
           )}
         </div>
       </header>
@@ -766,11 +788,11 @@ const styles = (mobile) => ({
     gap: "10px",
     position: "relative",
   },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
+  headerTopRow: { display: "flex", alignItems: "center", justifyContent: mobile ? "center" : "space-between", width: "100%", gap: mobile ? "8px" : "12px", flexWrap: "nowrap" },
+  headerLeft: { display: "flex", alignItems: "center", gap: "20px", width: "auto", justifyContent: "flex-start", flexWrap: "nowrap" },
+  mobileButtonsRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", marginTop: mobile ? "8px" : "0" },
+  mobileDivider: { width: "100%", height: "1px", backgroundColor: "#444", margin: "8px 0" },
+  mobileIconsRow: { display: "flex", gap: "10px", alignItems: "center", justifyContent: "center", width: "100%" },
   logoSection: {
     display: "flex",
     alignItems: "center",
@@ -778,9 +800,10 @@ const styles = (mobile) => ({
     cursor: "pointer",
   },
   logoImage: {
-    width: mobile ? "100px" : "150px",
+    width: mobile ? "80px" : "150px",
     height: "auto",
     objectFit: "contain",
+    flexShrink: 0,
   },
   logoText: {
     display: "flex",
@@ -803,11 +826,28 @@ const styles = (mobile) => ({
     display: "flex",
     alignItems: "center",
   },
-  headerRight: {
+  promoButtonWithIcon: {
+    backgroundColor: "#ffcc00",
+    border: "none",
+    padding: mobile ? "6px 12px" : "8px 16px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    color: "#1c1c1c",
     display: "flex",
     alignItems: "center",
-    gap: "20px",
+    justifyContent: "center",
+    whiteSpace: "nowrap",
+    fontSize: mobile ? "12px" : "14px",
+    flexShrink: 0,
+  },
+  headerRight: {
+    display: "flex",
     flexDirection: mobile ? "column" : "row",
+    alignItems: mobile ? "flex-end" : "center",
+    gap: mobile ? "8px" : "20px",
+    flexWrap: "nowrap",
+    justifyContent: mobile ? "flex-end" : "center",
     width: mobile ? "100%" : "auto",
   },
   phoneSection: {
@@ -882,21 +922,52 @@ const styles = (mobile) => ({
     textDecoration: "none",
   },
   mobileTelegramIcon: {
-    width: "50px",
-    height: "50px",
+    width: mobile ? "44px" : "50px",
+    height: mobile ? "44px" : "50px",
     borderRadius: "50%",
     objectFit: "cover",
   },
   mobilePhoneText: {
     color: "#ffcc00",
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: mobile ? "13px" : "14px",
     textAlign: "center",
   },
   mobileEmailText: {
     color: "#ccc",
-    fontSize: "12px",
+    fontSize: mobile ? "11px" : "12px",
     textAlign: "center",
+  },
+  mobileContactsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px",
+    width: "100%",
+    marginTop: "8px",
+    textAlign: "center",
+  },
+  cartContactsBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "8px",
+    width: "100%",
+    marginBottom: "20px",
+    paddingBottom: "16px",
+    borderBottom: "1px solid #444",
+  },
+  cartContactsIcons: {
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cartContactsText: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px",
   },
   nav: {
     display: "flex",
@@ -908,13 +979,16 @@ const styles = (mobile) => ({
   navButton: {
     backgroundColor: "#ffcc00",
     border: "none",
-    padding: mobile ? "8px 12px" : "8px 16px",
+    padding: mobile ? "6px 12px" : "8px 16px",
     borderRadius: "5px",
     cursor: "pointer",
     fontWeight: "bold",
     color: "#1c1c1c",
     fontSize: mobile ? "12px" : "14px",
     whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadge: {
     position: "absolute",

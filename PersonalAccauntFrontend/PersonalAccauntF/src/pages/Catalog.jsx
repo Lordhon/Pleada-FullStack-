@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import useCartTotals from "../hooks/useCartTotals";
 
@@ -8,7 +8,9 @@ const urlinok1 = "http://localhost:8000"
 export default function CatalogPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const cartTotal = useCartTotals();
+  const isCartPage = location.pathname === "/cart";
 
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -366,14 +368,16 @@ export default function CatalogPage() {
                 </div>
               )}
 
-              <div style={{ position: "relative" }}>
-                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-                {cartTotal > 0 && (
-                  <div style={s.cartBadge}>
-                    <div style={s.cartCount}>{cartTotal}</div>
-                  </div>
-                )}
-              </div>
+              {!isCartPage && (
+                <div style={{ position: "relative" }}>
+                  <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                  {cartTotal > 0 && (
+                    <div style={s.cartBadge}>
+                      <div style={s.cartCount}>{cartTotal}</div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -406,14 +410,16 @@ export default function CatalogPage() {
                 </div>
               )}
 
-              <div style={{ position: "relative" }}>
-                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-                {cartTotal > 0 && (
-                  <div style={s.cartBadge}>
-                    <div style={s.cartCount}>{cartTotal}</div>
-                  </div>
-                )}
-              </div>
+              {!isCartPage && (
+                <div style={{ position: "relative" }}>
+                  <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                  {cartTotal > 0 && (
+                    <div style={s.cartBadge}>
+                      <div style={s.cartCount}>{cartTotal}</div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -427,6 +433,10 @@ export default function CatalogPage() {
                 <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
+              </div>
+              <div style={s.mobileContactsContainer}>
+                <a href="tel:+79306653271" style={{ ...s.mobilePhoneText, textDecoration: "none" }}>+7 930 665-32-71</a>
+                <a href="mailto:zakaz@zpnn.ru" style={{ ...s.mobileEmailText, textDecoration: "none" }}>zakaz@zpnn.ru</a>
               </div>
             </>
           )}
@@ -852,8 +862,8 @@ const styles = (mobile) => ({
     textDecoration: "none",
   },
   mobileTelegramIcon: {
-    width: mobile ? "36px" : "50px",
-    height: mobile ? "36px" : "50px",
+    width: mobile ? "44px" : "50px",
+    height: mobile ? "44px" : "50px",
     borderRadius: "50%",
     objectFit: "cover",
   },
@@ -865,19 +875,31 @@ const styles = (mobile) => ({
   },
   mobileEmailText: {
     color: "#ccc",
-    fontSize: "12px",
+    fontSize: mobile ? "11px" : "12px",
+    textAlign: "center",
+  },
+  mobileContactsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px",
+    width: "100%",
+    marginTop: "8px",
     textAlign: "center",
   },
   navButton: {
     backgroundColor: "#ffcc00",
     border: "none",
-    padding: "8px 16px",
+    padding: mobile ? "6px 12px" : "8px 16px",
     borderRadius: "5px",
     cursor: "pointer",
     fontWeight: "bold",
     color: "#1c1c1c",
+    fontSize: mobile ? "12px" : "14px",
     whiteSpace: "nowrap",
-    fontSize: "14px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadge: {
     position: "absolute",

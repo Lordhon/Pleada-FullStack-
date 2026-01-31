@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import useCartTotals from "../hooks/useCartTotals";
 
 export default function MainPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const catalogRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isCartPage = location.pathname === "/cart";
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -313,14 +315,16 @@ export default function MainPage() {
               </div>
             )}
 
-            <div style={{ position: "relative" }}>
-              <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-              {cartTotal > 0 && (
-                <div style={s.cartBadge}>
-                  <div style={s.cartCount}>{cartTotal}</div>
-                </div>
-              )}
-            </div>
+            {!isCartPage && (
+              <div style={{ position: "relative" }}>
+                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
+                {cartTotal > 0 && (
+                  <div style={s.cartBadge}>
+                    <div style={s.cartCount}>{cartTotal}</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -373,6 +377,10 @@ export default function MainPage() {
                 <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
                   <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
                 </a>
+              </div>
+              <div style={s.mobileContactsContainer}>
+                <a href="tel:+79306653271" style={{ ...s.mobilePhoneText, textDecoration: "none" }}>+7 930 665-32-71</a>
+                <a href="mailto:zakaz@zpnn.ru" style={{ ...s.mobileEmailText, textDecoration: "none" }}>zakaz@zpnn.ru</a>
               </div>
             </>
           )}
@@ -541,8 +549,8 @@ export const styles = (mobile) => ({
   mobileIconsContainer: { display: "flex", gap: "8px", alignItems: "center" },
   mobileIconButton: { background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" },
   mobileTelegramLink: { display: "flex", textDecoration: "none" },
-  mobileTelegramIcon: { width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" },
-  mobileContactsContainer: { display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" },
+  mobileTelegramIcon: { width: mobile ? "44px" : "40px", height: mobile ? "44px" : "40px", borderRadius: "50%", objectFit: "cover" },
+  mobileContactsContainer: { display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", width: "100%", textAlign: "center" },
   mobilePhoneText: { color: "#ffcc00", fontWeight: "bold", fontSize: "13px" },
   mobileEmailText: { color: "#ccc", fontSize: "11px" },
   headerPhotoLink: { display: "flex", textDecoration: "none" },
@@ -552,7 +560,7 @@ export const styles = (mobile) => ({
   promoButton: { backgroundColor: "#ffcc00", border: "none", padding: "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c" },
   promoButtonWithIcon: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "6px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", display: "flex", alignItems: "center", justifyContent: "center", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px", flexShrink: 0 },
   settingsButton: { backgroundColor: "transparent", border: "none", padding: 0, cursor: "pointer", fontSize: "24px", transition: "transform 0.2s" },
-  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "10px 14px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "13px" : "14px", minHeight: mobile ? "40px" : "auto", display: "flex", alignItems: "center", justifyContent: "center" },
+  navButton: { backgroundColor: "#ffcc00", border: "none", padding: mobile ? "6px 12px" : "8px 16px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", color: "#1c1c1c", whiteSpace: "nowrap", fontSize: mobile ? "12px" : "14px", display: "flex", alignItems: "center", justifyContent: "center" },
   cartBadge: { position: "absolute", top: "-8px", right: "-8px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#ff4444", borderRadius: "50%", width: "20px", height: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" },
   cartCount: { fontSize: "12px", fontWeight: "bold", color: "#fff", lineHeight: 1 },
   profileContainer: { display: "flex", flexDirection: "column", alignItems: "center", position: "relative" },
