@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import useCartTotals from "../hooks/useCartTotals";
+import Header from "../components/Header";
 
 export default function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const catalogRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const isCartPage = location.pathname === "/cart";
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -218,8 +217,6 @@ export default function MainPage() {
     setEmailSuccess("");
   };
 
-  const cartTotal = useCartTotals();
-
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     const fullName = user?.fio || user?.name || user?.first_name || user?.username || user?.company || "";
@@ -284,108 +281,12 @@ export default function MainPage() {
 
   return (
     <div style={s.page}>
-      <header style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logoSection} onClick={() => navigate("/")}>
-            <img src="/logo.png" alt="logo" style={s.logoImage} />
-            {!isMobile && (
-              <div style={s.logoText}>
-                <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>
-              </div>
-            )}
-          </div>
-          {!isMobile && (
-            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
-              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
-            </button>
-          )}
-        </div>
-
-        {isMobile && (
-          <div style={s.mobileButtonsRow}>
-            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
-              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
-            </button>
-            {!isAuthenticated ? (
-              <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-            ) : (
-              <div style={s.profileContainer}>
-                <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-                <span style={s.company}>{user?.company || "Нет названия"}</span>
-              </div>
-            )}
-
-            {!isCartPage && (
-              <div style={{ position: "relative" }}>
-                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-                {cartTotal > 0 && (
-                  <div style={s.cartBadge}>
-                    <div style={s.cartCount}>{cartTotal}</div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={s.headerRight}>
-          {!isMobile && (
-            <div style={s.phoneSection}>
-              <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
-                <img src="/email.png" alt="email" style={s.headerIcon} />
-              </button>
-              <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
-                <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
-              </a>
-              <div style={s.phoneContent}>
-                <div>+7 930 665-32-71</div>
-                <div>zakaz@zpnn.ru</div>
-                <span style={s.phoneSub}>для связи по вопросам и заказам</span>
-              </div>
-            </div>
-          )}
-
-          {!isMobile && (
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              {!isAuthenticated ? (
-                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-              ) : (
-                <div style={s.profileContainer}>
-                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-                  <span style={s.company}>{user?.company || "Нет названия"}</span>
-                </div>
-              )}
-
-              <div style={{ position: "relative" }}>
-                <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-                {cartTotal > 0 && (
-                  <div style={s.cartBadge}>
-                    <div style={s.cartCount}>{cartTotal}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isMobile && (
-            <>
-              <div style={s.mobileDivider}></div>
-              <div style={s.mobileIconsRow}>
-                <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
-                  <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
-                </button>
-                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
-                  <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
-                </a>
-              </div>
-              <div style={s.mobileContactsContainer}>
-                <a href="tel:+79306653271" style={{ ...s.mobilePhoneText, textDecoration: "none" }}>+7 930 665-32-71</a>
-                <a href="mailto:zakaz@zpnn.ru" style={{ ...s.mobileEmailText, textDecoration: "none" }}>zakaz@zpnn.ru</a>
-              </div>
-            </>
-          )}
-        </div>
-      </header>
+      <Header
+        isMobile={isMobile}
+        isAuthenticated={isAuthenticated}
+        userCompany={user?.company}
+        onEmailClick={() => setShowEmailModal(true)}
+      />
 
       <div style={s.searchContainer}>
         <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", width: "100%", maxWidth: "400px" }}>

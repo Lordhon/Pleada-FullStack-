@@ -24,6 +24,7 @@ const priceGroups = [
   { id: 19, key: "lokust", label: "Lokust" },
 ];
 import useCartTotals from "../hooks/useCartTotals";
+import Header from "../components/Header";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -364,17 +365,12 @@ export default function AccountPage() {
   if (loading) {
     return (
       <div style={s.page}>
-        <header style={s.header}>
-          <div style={s.headerLeft}>
-            <div style={s.logoSection} onClick={() => navigate("/")}>
-              <img src="/logo.png" alt="logo" style={s.logoImage} />
-              {!isMobile && <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>}
-            </div>
-          </div>
-          <button style={s.navButton} onClick={() => navigate("/")}>
-            На главную
-          </button>
-        </header>
+        <Header
+          isMobile={isMobile}
+          isAuthenticated={!!user}
+          userCompany={user?.company}
+          onEmailClick={() => setShowEmailModal(true)}
+        />
         <div style={s.loadingContainer}>
           <p>Загрузка...</p>
         </div>
@@ -384,59 +380,12 @@ export default function AccountPage() {
 
   return (
     <div style={s.page}>
-      <header style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logoSection} onClick={() => navigate("/")}>
-            <img src="/logo.png" alt="logo" style={s.logoImage} />
-            {!isMobile && <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>}
-          </div>
-        </div>
-
-        <div style={s.headerRight}>
-          {!isMobile && (
-            <button
-              onClick={() => setShowEmailModal(true)}
-              title="Написать письмо"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-            >
-              <img src="/email.png" alt="email" style={{ width: "55px", height: "55px" }} />
-            </button>
-          )}
-
-          {!isMobile && (
-            <a
-              href="https://t.me/zapchasticpectex"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              <img src="/telega.png" alt="Telegram" style={{ width: "55px", height: "55px" }} />
-            </a>
-          )}
-
-          <button
-            style={s.navButton}
-            onClick={() => navigate("/catalog/komatsu/")}
-          >
-            Каталог
-          </button>
-
-          <div style={{ position: "relative" }}>
-            <button style={s.navButton} onClick={() => navigate("/cart")}>
-              Корзина
-            </button>
-            {cartTotal > 0 && (
-              <div style={s.cartBadge}>
-                <div style={s.cartCount}>{cartTotal}</div>
-              </div>
-            )}
-          </div>
-
-          <button style={s.navButton} onClick={handleLogout}>
-            Выход
-          </button>
-        </div>
-      </header>
+      <Header
+        isMobile={isMobile}
+        isAuthenticated={!!user}
+        userCompany={user?.company}
+        onEmailClick={() => setShowEmailModal(true)}
+      />
 
       <div style={s.container}>
         <div style={s.contentWrapper}>

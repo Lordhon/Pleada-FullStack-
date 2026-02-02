@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CryptoJS from "crypto-js";
+import Header from "../components/Header";
 
 const url = location.origin;
 
@@ -19,12 +20,11 @@ const formatPrice = (value) => {
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isCartPage = location.pathname === "/cart";
   const [cart, setCart] = useState({});
   const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [phone, setPhone] = useState("+7");
   const [code, setCode] = useState("");
+  const [promoCode, setPromoCode] = useState("");
   const [awaitingCode, setAwaitingCode] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [user, setUser] = useState(null);
@@ -165,6 +165,7 @@ export default function CartPage() {
     setAwaitingCode(false);
     setCode("");
     setPhone("+7");
+    setPromoCode("");
     setOrderMessage("");
   };
 
@@ -248,7 +249,7 @@ export default function CartPage() {
           email: emailAddress,
           phone: emailPhone,
           message: emailMessage,
-          domen: location.origin,
+        domen: window.location.origin,
         }),
       });
       setEmailSuccess("Спасибо! Ваше письмо отправлено. Мы свяжемся с вами в ближайшее время.");
@@ -269,8 +270,8 @@ export default function CartPage() {
       setOrderMessage("");
 
       const payload = awaitingCode
-        ? { phone: formatPhone(phone), code, cart }
-        : { phone: formatPhone(phone), cart };
+        ? { phone: formatPhone(phone), code, cart, promo_code: promoCode || null }
+        : { phone: formatPhone(phone), cart, promo_code: promoCode || null };
 
       const resOrder = await fetch(`${url}/api/order/`, {
         method: "POST",
@@ -306,6 +307,7 @@ export default function CartPage() {
           totalSum: totalCartSum,
           priceLevel: currentPriceLevel,
           savings: totalSavings,
+          promo_code: promoCode || null,
           orderDate: new Date().toISOString(),
           domen: location.origin
         };
@@ -375,14 +377,15 @@ export default function CartPage() {
           inn: user?.inn || "",
           id_user: user?.id || " ",
           company: user?.company || " ",
-          name: user?.first_name || " "
+          name: user?.first_name || " ",
         },
         items: orderItems,
         totalSum: totalCartSum,
         priceLevel: currentPriceLevel,
         savings: totalSavings,
+        promo_code: promoCode || null,
         orderDate: new Date().toISOString(),
-        domen: location.origin
+        domen: window.location.origin,
       };
 
       const resLine = await fetch(`${url}/api/order-line/`, {
@@ -409,7 +412,7 @@ export default function CartPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ cart }),
+        body: JSON.stringify({ cart, promo_code: promoCode || null }),
       });
 
       if (!resz.ok) {
@@ -452,105 +455,13 @@ export default function CartPage() {
 
   return (
     <div style={s.page}>
-     
-      <header style={s.header}>
-        {!isMobile ? (
-          <div style={s.headerLeft}>
-            <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
-              <img src="/logo.png" alt="logo" style={s.logoImage} />
-              <div style={s.logoText}>
-                <h1 style={s.logoTitle}>ПЛЕЯДЫ</h1>
-              </div>
-            </div>
-            <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
-              Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
-            </button>
-          </div>
-        ) : (
-          <>
-            <div style={s.headerTopRow}>
-              <div style={s.logoSection} onClick={() => navigate("/")} title="На главную">
-                <img src="/logo.png" alt="logo" style={s.logoImage} />
-              </div>
-            </div>
-            <div style={s.mobileButtonsRow}>
-              <button style={s.promoButtonWithIcon} onClick={() => navigate("/promo")}>
-                Акции <span style={{ marginLeft: "6px" }}>⚙️</span>
-              </button>
-              {!isAuthenticated ? (
-                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-              ) : (
-                <div style={s.profileContainer}>
-                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-                  <span style={s.company}>{user?.company || "Нет названия"}</span>
-                </div>
-              )}
-              <button style={s.navButton} onClick={() => navigate("/")}>Каталог</button>
-            </div>
-          </>
-        )}
+      <Header
+        isMobile={isMobile}
+        isAuthenticated={isAuthenticated}
+        userCompany={user?.company}
+        onEmailClick={() => setShowEmailModal(true)}
+      />
 
-        <div style={s.headerRight}>
-          {!isMobile && (
-            <div style={s.phoneSection}>
-              <button style={s.iconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
-                <img src="/email.png" alt="email" style={s.headerIcon} />
-              </button>
-              <a href="https://t.me/zapchasticpectex" style={s.headerPhotoLink}>
-                <img src="/telega.png" alt="promo banner" style={s.headerPhoto} />
-              </a>
-              <div style={s.phoneContent}>
-                <div>+7 930 665-32-71</div>
-                <div>zakaz@zpnn.ru</div>
-                <span style={s.phoneSub}>для связи по вопросам и заказам</span>
-              </div>
-            </div>
-          )}
-
-          {!isMobile && (
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              {!isAuthenticated ? (
-                <button style={s.navButton} onClick={() => navigate("/login")}>Войти</button>
-              ) : (
-                <div style={s.profileContainer}>
-                  <button style={s.navButton} onClick={() => navigate("/profile")}>Профиль</button>
-                  <span style={s.company}>{user?.company || "Нет названия"}</span>
-                </div>
-              )}
-              {!isCartPage && (
-                <div style={{ position: "relative" }}>
-                  <button style={s.navButton} onClick={() => navigate("/cart")}>Корзина</button>
-                  {cartTotalCount > 0 && (
-                    <div style={s.cartBadge}>
-                      <div style={s.cartCount}>{cartTotalCount}</div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {isMobile && (
-            <>
-              <div style={s.mobileDivider}></div>
-              <div style={s.mobileIconsRow}>
-                <button style={s.mobileIconButton} onClick={() => setShowEmailModal(true)} title="Написать письмо">
-                  <img src="/email.png" alt="email" style={s.mobileTelegramIcon} />
-                </button>
-                <a href="https://t.me/zapchasticpectex" style={s.mobileTelegramLink} target="_blank" rel="noopener noreferrer">
-                  <img src="/telega.png" alt="Telegram" style={s.mobileTelegramIcon} />
-                </a>
-              </div>
-              <div style={s.mobileContactsContainer}>
-                <a href="tel:+79306653271" style={{ ...s.mobilePhoneText, textDecoration: "none" }}>+7 930 665-32-71</a>
-                <a href="mailto:zakaz@zpnn.ru" style={{ ...s.mobileEmailText, textDecoration: "none" }}>zakaz@zpnn.ru</a>
-              </div>
-            </>
-          )}
-        </div>
-      </header>
-
-      
       <div style={s.container}>
         <h1 style={s.title}>Ваша корзина</h1>
         {cartItems.length === 0 ? (
@@ -635,6 +546,17 @@ export default function CartPage() {
                   Экономия: <strong style={{ color: "#0f0" }}>{formatPrice(totalSavings)} ₽</strong>
                 </div>
               )}
+
+              <div style={s.promoCodeSection}>
+                <label style={s.promoLabel}>Промокод (опционально):</label>
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  placeholder="Введите промокод"
+                  style={s.promoInput}
+                />
+              </div>
             </div>
 
             <button style={s.checkoutBtn} onClick={handleCheckout}>Оформить заказ</button>
@@ -1115,6 +1037,29 @@ const styles = (mobile) => ({
     marginBottom: "15px",
     fontWeight: "bold",
     color: "#0f0",
+  },
+  promoCodeSection: {
+    marginTop: "20px",
+    paddingTop: "20px",
+    borderTop: "1px solid #555",
+  },
+  promoLabel: {
+    display: "block",
+    marginBottom: "10px",
+    color: "#ffcc00",
+    fontWeight: "500",
+    fontSize: "14px",
+  },
+  promoInput: {
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #555",
+    borderRadius: "4px",
+    backgroundColor: "#1c1c1c",
+    color: "white",
+    fontSize: "14px",
+    outline: "none",
+    boxSizing: "border-box",
   },
   checkoutBtn: {
     marginTop: "30px",

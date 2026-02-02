@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem , HistoryOrder
+from storage.views import StorageView, Order , OrderLine, SearchItem , HelpSearchItem , HistoryOrder , Discounts
 from users.views import UserRegister, UserLogin, ActivateUserCode, ActivateUserLink , VerifyJWTToken , MeApiView ,  CallBack , SendEmailApi , AddInn , SeeINN , DeleteINN , Rename
 
 urlpatterns = [
@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/lookInn/' , SeeINN.as_view()),
     path('api/delete-inn/' , DeleteINN.as_view()),
     path('api/Rename-name/' , Rename.as_view()),
+    path('api/discounts/' , Discounts.as_view()),
 
 
 

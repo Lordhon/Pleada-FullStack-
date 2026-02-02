@@ -184,6 +184,20 @@ class HistoryOrder(APIView):
         except Exception as e : 
             logger.error(e)
             return Response({"error": str(e)}, status=400)
+
+
+class Discounts(APIView):
+    def get(self ,request):
+        try:
+            headers = {
+                "Content-Type": "application/json",
+                "KEY": getkey()
+            }
+            response = requests.get("https://parus.ohelp.ru/api_lk?f=discounts" , headers=headers)
+            return Response(response.json() , status=200)
+        except Exception as e:
+            logger.error(e)
+            return Response({"error":str(e)} , status=500)
             
 
 
