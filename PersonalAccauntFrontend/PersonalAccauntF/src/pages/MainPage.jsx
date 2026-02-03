@@ -183,6 +183,9 @@ export default function MainPage() {
         phone: callbackPhone,
         domen: location.origin
       });
+        if (window.ym) {
+          ym(105250468, 'reachGoal', 'Callback');
+        }
       setCallbackSuccess("Спасибо! Мы вам перезвоним в ближайшее время.");
       setCallbackPhone("+7");
       setCallbackName("");

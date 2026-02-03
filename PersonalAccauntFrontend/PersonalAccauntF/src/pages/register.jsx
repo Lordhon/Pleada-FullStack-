@@ -108,6 +108,9 @@ export default function RegisterPage() {
         email: formData.email,
         code,
       });
+          if (window.ym) {
+      ym(105250468, 'reachGoal', 'register');
+    }
       
       setMessage("Регистрация подтверждена!");
       setTimeout(() => navigate("/login"), 1000);
