@@ -171,7 +171,8 @@ class CallBack(APIView):
         r = requests.get(f'https://parus.ohelp.ru/api_lk?f=callback&obj={b}' , headers=headers)
 
         logger.info(f'response: {r.json()}')
-        return Response(status=200)
+        
+        return Response( status=200)
         
 
 class SendEmailApi(APIView):

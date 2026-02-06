@@ -181,11 +181,13 @@ export default function MainPage() {
       await axios.post(`${window.location.origin}/api/callback/`, {
         name: callbackName,
         phone: callbackPhone,
-        domen: location.origin
+        domen:  window.location.origin
+        
       });
-        if (window.ym) {
-          ym(105250468, 'reachGoal', 'Callback');
-        }
+
+      if (window.ym) {
+        ym(105250468, 'reachGoal', 'Callback');
+      }
       setCallbackSuccess("Спасибо! Мы вам перезвоним в ближайшее время.");
       setCallbackPhone("+7");
       setCallbackName("");

@@ -46,6 +46,7 @@ export default function CallbackModal({ onClose }) {
         name: callbackName,
         phone: callbackPhone,
         domen: location.origin
+        
       });
 
       if (window.ym) {
