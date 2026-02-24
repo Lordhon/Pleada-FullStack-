@@ -10,6 +10,19 @@ from .models import StorageItem, ItemCompany
 
 logger = logging.getLogger(__name__)
 
+def truncate_price(value):
+    if value is None or value == 0:
+        return 0
+    value_str = str(value)
+    if '.' not in value_str:
+        return value
+    
+    integer_part, decimal_part = value_str.split('.')
+    
+    if len(decimal_part) <= 2:
+        return value
+    
+    return float(f"{integer_part}.{decimal_part[:2]}")
 
 def key():
     return hashlib.md5(str(date.today()).encode("utf-8")).hexdigest()
@@ -73,7 +86,6 @@ def fetch_and_update_storage(self):
  
         companies = {str(c.id): c for c in ItemCompany.objects.all()}
 
-        # Создаём товары
         for item in data_items:
             art = item.get("art")
             if not art:
@@ -101,10 +113,10 @@ def fetch_and_update_storage(self):
                     art=art_str,
                     name=name,
                     kl=int(item.get("kl", 0)),
-                    price=item.get("price", 0),
-                    price1=item.get("price1", 0),
-                    price2=item.get("price2", 0),
-                    price3=item.get("price3", 0),
+                    price=truncate_price(item.get("price", 0)),
+                    price1=truncate_price(item.get("price1", 0)),
+                    price2=truncate_price(item.get("price2", 0)),
+                    price3=truncate_price(item.get("price3", 0)),
                     gr=gr_obj,
                     publ=bool(group_publ_map.get(gr_id_str, False)),
                 )
