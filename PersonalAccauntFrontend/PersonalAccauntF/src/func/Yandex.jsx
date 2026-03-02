@@ -5,6 +5,13 @@ export default function YandexMetrika() {
   const location = useLocation();
 
   useEffect(() => {
+
+    if (
+        window.location.hostname !== "zpnn.ru" &&
+        window.location.hostname !== "rfzp.ru" 
+        ) {
+        return;
+      }
     
     if (!window.ym) {
       const script = document.createElement("script");
